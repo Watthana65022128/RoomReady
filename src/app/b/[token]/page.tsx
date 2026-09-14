@@ -19,8 +19,8 @@ export default async function Page({
   return (
     <main className="tenant-page">
       <div className="tenant-brand">
-        <span className="brand-icon">ห</span>
-        <span>หอพร้อม</span>
+        <span className="brand-icon">R</span>
+        <span>RoomReady</span>
       </div>
       <article className="panel tenant-bill">
         <header>

@@ -1,5 +1,75 @@
 @import "tailwindcss";
 
+.toast-viewport {
+  position: fixed;
+  inset: auto 20px 20px auto;
+  width: min(400px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+.toast-viewport:popover-open {
+  display: grid;
+  gap: 10px;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--green);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px #183b341f;
+  animation: toast-enter 180ms ease-out;
+}
+.toast p {
+  flex: 1;
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.toast-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #eaf4df;
+  color: var(--green);
+  font-weight: 600;
+}
+.toast-error { border-left-color: var(--red); }
+.toast-error .toast-icon { background: #fcecea; color: var(--red); }
+.toast-info .toast-icon { background: #eef1ee; }
+.toast-close {
+  flex: 0 0 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 22px;
+  color: var(--muted);
+}
+.toast-close:hover { background: var(--canvas); }
+@keyframes toast-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast { animation: none; }
+}
+@media (max-width: 700px) {
+  .toast-viewport {
+    inset: 16px 16px auto auto;
+    top: max(16px, env(safe-area-inset-top));
+  }
+}
+
 :root {
   --ink: #183b34;
   --muted: #77817e;
@@ -9,7 +79,7 @@
   --green: #1e4b3f;
   --lime: #cfed86;
   --red: #ad3d3d;
-  --font-body: "Leelawadee UI", "Noto Sans Thai", Tahoma, sans-serif;
+  --font-body: var(--font-kanit), "Leelawadee UI", Tahoma, sans-serif;
 }
 * {
   box-sizing: border-box;
@@ -44,6 +114,32 @@ button {
 button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+.field-error {
+  display: block;
+  margin-top: 5px;
+  color: var(--red);
+  font-size: 12px;
+}
+.password-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: -4px 0 2px;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 12px;
+}
+.password-rules li::before {
+  content: "○";
+  margin-right: 5px;
+}
+.password-rules li.valid {
+  color: #4d7650;
+}
+.password-rules li.valid::before {
+  content: "✓";
 }
 button,
 a,
@@ -816,9 +912,20 @@ tbody tr:hover {
   padding: 13px 15px;
 }
 .meter-table input {
-  max-width: 105px;
+  width: 105px;
+  min-width: 0;
+  flex: 0 0 105px;
   padding: 9px;
   font-size: 14px;
+}
+.meter-reading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.meter-table .meter-usage {
+  margin: 0;
+  white-space: nowrap;
 }
 .meter-table td:first-child {
   width: 70px;
@@ -951,6 +1058,10 @@ tbody tr:hover {
   font-size: 14px;
 }
 dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  overflow-y: auto;
   background: #fff;
   border: 1px solid #d8e1d0;
   border-radius: 13px;
@@ -1751,8 +1862,13 @@ th,
     gap: 12px;
   }
   .meter-table input {
+    width: 100%;
+    flex: 1 1 auto;
     max-width: none;
     font-size: 16px;
+  }
+  .meter-reading {
+    flex-wrap: wrap;
   }
   .meter-table td .sr-only {
     position: static;

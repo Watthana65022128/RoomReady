@@ -5,6 +5,7 @@ import { command } from "@/app/actions";
 import { type Workspace, money, usage, lineTotal } from "@/lib/domain";
 import type { Tables } from "@/types/database";
 import { Empty } from "./ui";
+import { useToast } from "./toast";
 type Reading = {
   room_id: string;
   water_previous: string;
@@ -29,6 +30,7 @@ export function MeterGrid({
   onDirty: (dirty: boolean) => void;
 }) {
   const router = useRouter();
+  const notify = useToast();
   const active = new Set(
     data.tenancies
       .filter((t) => !t.moved_out && t.moved_in < month + "-32")
@@ -105,6 +107,7 @@ export function MeterGrid({
         rows: [...dirty].map((id) => rows[id]),
       });
       setMessage(result.message);
+      notify(result.message, result.ok ? "success" : "error");
       if (result.ok) {
         setDirty(new Set());
         onDirty(false);
@@ -112,6 +115,7 @@ export function MeterGrid({
       }
     } catch {
       setMessage("บันทึกไม่สำเร็จ ข้อมูลยังอยู่ในตาราง ลองอีกครั้ง");
+      notify("บันทึกไม่สำเร็จ ข้อมูลยังอยู่ในตาราง ลองอีกครั้ง", "error");
     } finally {
       setSaving(false);
     }
@@ -251,6 +255,7 @@ export function MeterGrid({
                               ? "ครั้งก่อน"
                               : "ครั้งนี้"}
                           </label>
+                          <div className="meter-reading">
                           <input
                             id={room.id + key}
                             data-row={index}
@@ -285,10 +290,11 @@ export function MeterGrid({
                             }}
                           />
                           {key.endsWith("current") && (
-                            <small>
-                              {key.startsWith("water") ? wu : eu} หน่วย
+                            <small className="meter-usage">
+                              {(key.startsWith("water") ? wu : eu) ?? "—"} หน่วย
                             </small>
                           )}
+                          </div>
                         </td>
                       );
                     })}

@@ -11,7 +11,8 @@ import {
   billStatus,
   dateLabel,
 } from "@/lib/domain";
-import { command, logout } from "@/app/actions";
+import { command } from "@/app/actions";
+import { LogoutDialog } from "./logout-dialog";
 import {
   Badge,
   Modal,
@@ -22,6 +23,7 @@ import {
   ShareBill,
 } from "./ui";
 import { MeterGrid } from "./meters";
+import { useToast } from "./toast";
 
 type Tab = "overview" | "billing" | "rooms" | "settings";
 export function WorkspaceApp({
@@ -32,6 +34,7 @@ export function WorkspaceApp({
   initial: { property?: string; tab?: string; month?: string };
 }) {
   const router = useRouter();
+  const notify = useToast();
   const [tab, setTab] = useState<Tab>(
       ["overview", "billing", "rooms", "settings"].includes(initial.tab || "")
         ? (initial.tab as Tab)
@@ -137,6 +140,7 @@ export function WorkspaceApp({
         month: month + "-01",
       });
       setMessage(r.message);
+      notify(r.message, r.ok ? "success" : "error");
       if (r.ok) {
         if (op === "drafts_create") setStep("bills");
         if (op === "issue_all") setModal(null);
@@ -144,6 +148,7 @@ export function WorkspaceApp({
       }
     } catch {
       setMessage("เชื่อมต่อไม่สำเร็จ กรุณาลองอีกครั้ง");
+      notify("เชื่อมต่อไม่สำเร็จ กรุณาลองอีกครั้ง", "error");
     } finally {
       setBusy(false);
     }
@@ -159,9 +164,9 @@ export function WorkspaceApp({
     <div className="app-shell">
       <aside className="sidebar">
         <Link href="/" className="brand">
-          <span className="brand-icon">ห</span>
+          <span className="brand-icon">R</span>
           <span>
-            หอพร้อม<small>HORPROM</small>
+            RoomReady
           </span>
         </Link>
         <div className="side-caption">พื้นที่ทำงาน</div>
@@ -199,11 +204,9 @@ export function WorkspaceApp({
           <div>
             เจ้าของหอพัก<small>{data.properties.length} หอพักในบัญชี</small>
           </div>
-          <form action={logout}>
-            <button title="ออกจากระบบ" aria-label="ออกจากระบบ">
+            <button type="button" title="ออกจากระบบ" aria-label="ออกจากระบบ" onClick={() => setModal("logout")}>
               ↪
             </button>
-          </form>
         </div>
       </aside>
       <div className="app-body">
@@ -236,11 +239,11 @@ export function WorkspaceApp({
             >
               + เพิ่มหอพัก
             </button>
-            <form className="mobile-logout" action={logout}>
-              <button className="small secondary" aria-label="ออกจากระบบ">
+            <div className="mobile-logout">
+              <button type="button" className="small secondary" aria-label="ออกจากระบบ" onClick={() => setModal("logout")}>
                 ↪
               </button>
-            </form>
+            </div>
           </div>
         </header>
         <main className="workspace">
@@ -749,11 +752,12 @@ export function WorkspaceApp({
             </>
           )}
           <footer className="workspace-footer">
-            <span>หอพร้อม</span>
+            <span>RoomReady</span>
             <span>จัดการวันนี้ ให้เดือนหน้าเบาขึ้น</span>
           </footer>
         </main>
       </div>
+      {modal === "logout" && <LogoutDialog onClose={() => setModal(null)} unsaved={meterDirty} />}
       {modal === "new-property" && (
         <Modal title="เพิ่มหอพัก" onClose={close}>
           <PropertyForm data={data} onDone={close} />

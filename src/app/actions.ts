@@ -5,6 +5,12 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import type { Json } from "@/types/database";
 import type { ActionResult } from "@/lib/domain";
+import {
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+  isStrongPassword,
+  isValidEmail,
+} from "@/lib/auth-validation";
 
 const operations = new Set([
   "property_save",
@@ -75,12 +81,19 @@ export async function authAction(
 ): Promise<ActionResult> {
   const db = await createClient();
   const email = String(form.get("email") || "").trim(),
-    password = String(form.get("password") || "");
+    password = String(form.get("password") || ""),
+    confirmPassword = String(form.get("confirm_password") || "");
   if (!["login", "signup", "forgot", "reset"].includes(mode))
     return { message: "คำขอไม่ถูกต้อง" };
-  if (mode !== "reset" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+  if (mode !== "reset" && !isValidEmail(email))
     return { message: "กรุณากรอกอีเมลให้ถูกต้อง" };
-  if (mode !== "forgot" && password.length < 8)
+  if (mode === "signup" && !isStrongPassword(password))
+    return {
+      message: `รหัสผ่านต้องมี ${PASSWORD_MIN_LENGTH}-${PASSWORD_MAX_LENGTH} ตัว พร้อมตัวพิมพ์เล็ก พิมพ์ใหญ่ ตัวเลข และสัญลักษณ์`,
+    };
+  if (mode === "signup" && password !== confirmPassword)
+    return { message: "รหัสผ่านและการยืนยันรหัสผ่านไม่ตรงกัน" };
+  if (!["forgot", "signup"].includes(mode) && password.length < 8)
     return { message: "รหัสผ่านอย่างน้อย 8 ตัวอักษร" };
   const origin =
     process.env.APP_URL ||
@@ -119,14 +132,15 @@ export async function authAction(
         ok: true,
         message: "ตรวจอีเมลเพื่อยืนยันบัญชี แล้วกลับมาเข้าสู่ระบบ",
       };
+    redirect("/?toast=register");
   } else {
     const { error } = await db.auth.signInWithPassword({ email, password });
     if (error) return { message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" };
   }
-  redirect("/");
+  redirect("/?toast=login");
 }
 export async function logout() {
   const db = await createClient();
   await db.auth.signOut();
-  redirect("/login");
+  redirect("/login?toast=logout");
 }

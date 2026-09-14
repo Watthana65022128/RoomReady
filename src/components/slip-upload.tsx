@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "./toast";
 export function SlipUpload({
   token,
   submitted,
@@ -10,6 +11,7 @@ export function SlipUpload({
 }) {
   const router = useRouter(),
     ref = useRef<HTMLInputElement>(null);
+  const notify = useToast();
   const [busy, setBusy] = useState(false),
     [progress, setProgress] = useState(0),
     [message, setMessage] = useState(""),
@@ -27,6 +29,7 @@ export function SlipUpload({
           !file.size
         ) {
           setMessage("กรุณาเลือก JPG, PNG หรือ WebP ขนาดไม่เกิน 5 MB");
+          notify("กรุณาเลือก JPG, PNG หรือ WebP ขนาดไม่เกิน 5 MB", "error");
           return;
         }
         setBusy(true);
@@ -44,6 +47,7 @@ export function SlipUpload({
         xhr.onerror = xhr.ontimeout = () => {
           setBusy(false);
           setMessage("การเชื่อมต่อขัดข้อง ลองส่งอีกครั้ง");
+          notify("การเชื่อมต่อขัดข้อง ลองส่งอีกครั้ง", "error");
         };
         xhr.onload = () => {
           setBusy(false);
@@ -51,12 +55,17 @@ export function SlipUpload({
             const result = JSON.parse(xhr.responseText);
             if (xhr.status >= 200 && xhr.status < 300) {
               setMessage("ส่งสลิปแล้ว รอเจ้าของตรวจสอบ");
+              notify("ส่งสลิปแล้ว รอเจ้าของตรวจสอบ", "success");
               setName("");
               if (ref.current) ref.current.value = "";
               router.refresh();
-            } else setMessage(result.error || "ส่งไม่สำเร็จ ลองอีกครั้ง");
+            } else {
+              setMessage(result.error || "ส่งไม่สำเร็จ ลองอีกครั้ง");
+              notify(result.error || "ส่งไม่สำเร็จ ลองอีกครั้ง", "error");
+            }
           } catch {
             setMessage("ส่งไม่สำเร็จ กรุณาลองอีกครั้ง");
+            notify("ส่งไม่สำเร็จ กรุณาลองอีกครั้ง", "error");
           }
         };
         xhr.send(form);

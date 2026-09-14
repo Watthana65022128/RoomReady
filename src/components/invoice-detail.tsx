@@ -30,7 +30,7 @@ export function InvoiceDetail({
     <main className="detail-page">
       <header className="detail-nav">
         <Link href={back}>← กลับรอบบิล</Link>
-        <span className="brand">หอพร้อม</span>
+        <span className="brand">RoomReady</span>
       </header>
       <div className="page-heading">
         <div>

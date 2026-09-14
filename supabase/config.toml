@@ -1,2 +1,6 @@
 [functions.bill-gateway]
 verify_jwt = false
+
+# Temporary for local/test signup flows. Re-enable before production.
+[auth.email]
+enable_confirmations = false

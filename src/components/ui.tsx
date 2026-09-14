@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { billStatus, statusText } from "@/lib/domain";
 import type { Tables, Json } from "@/types/database";
 import { command } from "@/app/actions";
+import { useToast } from "./toast";
 export function Badge({
   invoice,
 }: {
@@ -94,6 +95,7 @@ export function CommandForm({
 }) {
   const [pending, setPending] = useState(false),
     [message, setMessage] = useState("");
+  const notify = useToast();
   return (
     <form
       className="stack"
@@ -105,9 +107,11 @@ export function CommandForm({
         try {
           const r = await command(op, build(f));
           setMessage(r.message);
+          notify(r.message, r.ok ? "success" : "error");
           if (r.ok) onDone?.();
         } catch {
           setMessage("เชื่อมต่อไม่สำเร็จ ลองบันทึกอีกครั้ง");
+          notify("เชื่อมต่อไม่สำเร็จ ลองบันทึกอีกครั้ง", "error");
         } finally {
           setPending(false);
         }
@@ -150,6 +154,7 @@ export function ShareBill({
   total: string;
 }) {
   const [message, setMessage] = useState("");
+  const notify = useToast();
   async function share() {
     const url = window.location.origin + "/b/" + token;
     const text = `บิลห้อง ${room} ยอด ${total} บาท เปิดดูรายละเอียดและส่งสลิปได้ที่`;
@@ -160,14 +165,17 @@ export function ShareBill({
       } else {
         await navigator.clipboard.writeText(text + "\n" + url);
         setMessage("คัดลอกแล้ว นำไปวางใน LINE");
+        notify("คัดลอกลิงก์แล้ว นำไปวางใน LINE ได้เลย", "success");
       }
     } catch (e) {
       if (e instanceof Error && e.name === "AbortError") return;
       try {
         await navigator.clipboard.writeText(text + "\n" + url);
         setMessage("คัดลอกแล้ว นำไปวางใน LINE");
+        notify("คัดลอกลิงก์แล้ว นำไปวางใน LINE ได้เลย", "success");
       } catch {
         setMessage("คัดลอกลิงก์จากหน้าบิลเพื่อส่งใน LINE");
+        notify("คัดลอกไม่สำเร็จ กรุณาคัดลอกลิงก์จากหน้าบิล", "error");
       }
     }
   }
