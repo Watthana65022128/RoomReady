@@ -107,10 +107,14 @@ export function WorkspaceApp({
         .startsWith(month),
   );
   const overdue = outstanding.filter((i) => i.due_date < today());
-  const visible = invoices
+  const stepInvoices = invoices.filter((i) =>
+    step === "bills" ? i.status === "draft" : i.status !== "draft",
+  );
+  const visible = stepInvoices
     .filter(
       (i) =>
-        (status === "all" || billStatus(i) === status) &&
+        (step === "bills" ||
+          (status === "all" ? i.status !== "void" : billStatus(i) === status)) &&
         (i.room_name + " " + i.tenant_name)
           .toLowerCase()
           .includes(query.toLowerCase()),
@@ -143,7 +147,12 @@ export function WorkspaceApp({
       notify(r.message, r.ok ? "success" : "error");
       if (r.ok) {
         if (op === "drafts_create") setStep("bills");
-        if (op === "issue_all") setModal(null);
+        if (op === "issue_all") {
+          setModal(null);
+          setStep("share");
+          setStatus("all");
+          setQuery("");
+        }
         router.refresh();
       }
     } catch {
@@ -390,7 +399,7 @@ export function WorkspaceApp({
                           className="text-button"
                           onClick={() => {
                             navigate("billing");
-                            setStep("bills");
+                            setStep("share");
                             setStatus("slip_submitted");
                           }}
                         >
@@ -496,7 +505,10 @@ export function WorkspaceApp({
                     <button
                       className={step === "share" ? "active" : ""}
                       onClick={() => {
-                        if (canLeave()) setStep("share");
+                        if (canLeave()) {
+                          setStep("share");
+                          setStatus("all");
+                        }
                       }}
                     >
                       <span>03</span> แชร์และรับชำระ
@@ -522,14 +534,14 @@ export function WorkspaceApp({
                       <div className="panel-head wrap">
                         <div>
                           <h2>
-                            {step === "bills" ? "บิลเดือนนี้" : "ติดตามการชำระ"}{" "}
-                            <span className="count">{invoices.length}</span>
+                            {step === "bills" ? "บิลร่างรอตรวจและออกบิล" : "ติดตามการชำระ"}{" "}
+                            <span className="count">{visible.length}</span>
                           </h2>
                           <small className="muted">
                             ครบกำหนดวันที่ {property.due_day} ของเดือนถัดไป
                           </small>
                         </div>
-                        <div className="actions">
+                        {step === "bills" && <div className="actions">
                           <button
                             className="secondary"
                             disabled={busy}
@@ -552,7 +564,7 @@ export function WorkspaceApp({
                             }
                             )
                           </button>
-                        </div>
+                        </div>}
                       </div>
                       <div className="table-tools">
                         <input
@@ -561,34 +573,34 @@ export function WorkspaceApp({
                           value={query}
                           onChange={(e) => setQuery(e.target.value)}
                         />
-                        <select
+                        {step === "share" && <select
                           aria-label="สถานะบิล"
                           value={status}
                           onChange={(e) => setStatus(e.target.value)}
                         >
-                          <option value="all">ทุกสถานะ</option>
+                          <option value="all">บิลที่ออกแล้วทั้งหมด</option>
                           {Object.entries({
-                            draft: "ร่าง",
                             issued: "รอชำระ",
                             slip_submitted: "รอตรวจสลิป",
                             paid: "จ่ายแล้ว",
                             overdue: "เกินกำหนด",
-                            void: "ยกเลิก",
+                            void: "ประวัติบิลยกเลิก",
                           }).map(([s, t]) => (
                             <option key={s} value={s}>
                               {t}
                             </option>
                           ))}
-                        </select>
+                        </select>}
                         <span className="muted">
                           {visible.length} บิล · ฿
                           {money(visible.reduce((s, i) => s + i.total, 0))}
                         </span>
                       </div>
                       {visible.length === 0 ? (
-                        <Empty title="ยังไม่มีบิลในรายการนี้">
-                          กรอกและบันทึกมิเตอร์ แล้วสร้างบิลร่าง
-                          หรือลองเปลี่ยนตัวกรอง
+                        <Empty title={step === "bills" ? "ไม่มีบิลร่างรอตรวจ" : "ไม่มีบิลในรายการนี้"}>
+                          {step === "bills"
+                            ? "กรอกและบันทึกมิเตอร์เพื่อสร้างบิลร่าง หรือไปขั้นแชร์และรับชำระเพื่อดูบิลที่ออกแล้ว"
+                            : "ออกบิลจากขั้นตรวจและออกบิลก่อนแชร์และรับชำระ หรือลองเปลี่ยนตัวกรอง"}
                         </Empty>
                       ) : (
                         <div className="table-scroll">
@@ -629,10 +641,12 @@ export function WorkspaceApp({
                                           ? "ตรวจ / แก้บิล"
                                           : i.status === "slip_submitted"
                                             ? "ตรวจสลิป"
-                                            : "ดูบิล"}{" "}
+                                            : ["issued", "overdue"].includes(i.status)
+                                              ? "รับชำระ / ดูบิล"
+                                              : "ดูบิล"}{" "}
                                         →
                                       </Link>
-                                      {!["draft", "void"].includes(
+                                      {step === "share" && !["draft", "void"].includes(
                                         i.status,
                                       ) && (
                                         <ShareBill
