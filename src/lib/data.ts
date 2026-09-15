@@ -33,13 +33,29 @@ export async function workspace(): Promise<Workspace> {
   >(table: T) {
     const result: Tables<T>[] = [];
     for (let offset = 0; ; offset += 1000) {
-      const { data, error } = await db
+      const startedAt = Date.now();
+      const { data, error, status } = await db
         .from(table as OwnerTable)
         .select("*")
         .eq("owner_id", user.id)
         .order("id")
         .range(offset, offset + 999);
-      if (error) throw new Error("โหลดข้อมูลไม่สำเร็จ กรุณาลองอีกครั้ง");
+      if (error) {
+        console.error("[workspace.rows] Failed to load data", {
+          table,
+          offset,
+          limit: 1000,
+          status,
+          code: error.code,
+          message: error.message
+            .replace(/Bearer\s+\S+/gi, "Bearer [redacted]")
+            .replace(/eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, "[redacted token]")
+            .replace(/https?:\/\/\S+/g, "[redacted URL]")
+            .slice(0, 2000),
+          durationMs: Date.now() - startedAt,
+        });
+        throw new Error("โหลดข้อมูลไม่สำเร็จ กรุณาลองอีกครั้ง");
+      }
       const page = data as unknown as Tables<T>[];
       result.push(...page);
       if (page.length < 1000) break;
