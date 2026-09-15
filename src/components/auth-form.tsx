@@ -96,14 +96,14 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
                   autoComplete={
                     mode === "login" ? "current-password" : "new-password"
                   }
-                  placeholder={signup ? "อย่างน้อย 12 ตัวอักษร" : "อย่างน้อย 8 ตัวอักษร"}
+                  placeholder="อย่างน้อย 8 ตัวอักษร"
                 />
               </label>
             )}
             {signup && (
               <>
                 <ul className="password-rules" aria-label="เงื่อนไขรหัสผ่าน">
-                  <li className={checks.length ? "valid" : ""}>12–72 ตัวอักษร</li>
+                  <li className={checks.length ? "valid" : ""}>8–72 ตัวอักษร</li>
                   <li className={checks.lowercase ? "valid" : ""}>ตัวพิมพ์เล็ก</li>
                   <li className={checks.uppercase ? "valid" : ""}>ตัวพิมพ์ใหญ่</li>
                   <li className={checks.number ? "valid" : ""}>ตัวเลข</li>
