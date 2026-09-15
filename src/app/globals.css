@@ -121,6 +121,39 @@ button:disabled {
   color: var(--red);
   font-size: 12px;
 }
+.password-input {
+  position: relative;
+  display: block;
+}
+.auth-panel .password-input input {
+  width: 100%;
+  padding-right: 52px;
+}
+.password-input input::-ms-reveal {
+  display: none;
+}
+.password-input .password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 8px;
+  color: var(--muted);
+}
+.password-input .password-toggle:hover,
+.password-input .password-toggle[aria-pressed="true"] {
+  color: var(--green);
+  background: var(--canvas);
+}
+.password-input .password-toggle:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: -2px;
+}
 .password-rules {
   display: flex;
   flex-wrap: wrap;

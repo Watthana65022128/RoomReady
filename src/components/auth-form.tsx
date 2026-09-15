@@ -1,5 +1,5 @@
 "use client";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, type ComponentProps } from "react";
 import Link from "next/link";
 import { authAction } from "@/app/actions";
 import { useToast } from "./toast";
@@ -86,8 +86,7 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
             {mode !== "forgot" && (
               <label>
                 รหัสผ่าน
-                <input
-                  type="password"
+                <PasswordInput
                   name="password"
                   required
                   minLength={signup ? PASSWORD_MIN_LENGTH : 8}
@@ -111,8 +110,7 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
                 </ul>
                 <label>
                   ยืนยันรหัสผ่าน
-                  <input
-                    type="password"
+                  <PasswordInput
                     name="confirm_password"
                     required
                     minLength={PASSWORD_MIN_LENGTH}
@@ -158,5 +156,41 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
         <p className="auth-footer">RoomReady · งานหอพักที่เบาขึ้นทุกเดือน</p>
       </section>
     </main>
+  );
+}
+
+function PasswordInput(props: Omit<ComponentProps<"input">, "type">) {
+  const [revealed, setRevealed] = useState(false);
+  const label = props.name === "confirm_password" ? "รหัสผ่านยืนยัน" : "รหัสผ่าน";
+  return (
+    <span className="password-input">
+      <input {...props} type={revealed ? "text" : "password"} />
+      <button
+        type="button"
+        className="password-toggle"
+        aria-label={`แสดง${label}`}
+        aria-pressed={revealed}
+        title={`${revealed ? "ซ่อน" : "แสดง"}${label}`}
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={() => setRevealed((value) => !value)}
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+          <circle cx="12" cy="12" r="3" />
+          {revealed && <path d="m3 3 18 18" />}
+        </svg>
+      </button>
+    </span>
   );
 }
