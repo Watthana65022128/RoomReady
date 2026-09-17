@@ -14,6 +14,18 @@ export type Database = {
   };
   public: {
     Tables: {
+      property_bill_links: {
+        Row: { property_id: string; token: string };
+        Insert: { property_id: string; token: string };
+        Update: { token?: string };
+        Relationships: [{
+          foreignKeyName: "property_bill_links_property_id_fkey";
+          columns: ["property_id"];
+          isOneToOne: true;
+          referencedRelation: "properties";
+          referencedColumns: ["id"];
+        }];
+      };
       billing_cycles: {
         Row: {
           id: string;
@@ -519,6 +531,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      submit_group_slip: {
+        Args: { group_token: string; invoice_id: string; object_path: string };
+        Returns: boolean;
+      };
       owner_command: { Args: { op: string; p: Json }; Returns: Json };
       submit_slip: {
         Args: { bill_token: string; object_path: string };

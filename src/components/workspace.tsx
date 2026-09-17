@@ -14,6 +14,7 @@ import {
 import { command } from "@/app/actions";
 import { LogoutDialog } from "./logout-dialog";
 import { PaymentQrSettings } from "./payment-qr-settings";
+import { SharePropertyBills } from "./share-property-bills";
 import {
   Badge,
   Modal,
@@ -554,6 +555,7 @@ export function WorkspaceApp({
                             ครบกำหนดวันที่ {property.due_day} ของเดือนถัดไป
                           </small>
                         </div>
+                        {step === "share" && <SharePropertyBills key={property.id} propertyId={property.id} name={property.name} />}
                         {step === "bills" && (
                           <div className="actions">
                             <button

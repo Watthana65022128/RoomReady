@@ -2,11 +2,16 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "./toast";
+import { RoomPaymentNotice } from "./room-payment-notice";
 export function SlipUpload({
   token,
   submitted,
+  uploadUrl,
+  roomName,
 }: {
-  token: string;
+  token?: string;
+  uploadUrl?: string;
+  roomName?: string;
   submitted: boolean;
 }) {
   const router = useRouter(),
@@ -38,7 +43,7 @@ export function SlipUpload({
         const form = new FormData();
         form.append("file", file);
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/b/" + token + "/slip");
+        xhr.open("POST", uploadUrl ?? ("/api/b/" + token + "/slip"));
         xhr.timeout = 60000;
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable)
@@ -71,6 +76,8 @@ export function SlipUpload({
         xhr.send(form);
       }}
     >
+      {roomName && <h2>ส่งสลิปห้อง {roomName}</h2>}
+      {roomName && <RoomPaymentNotice />}
       <h2>{submitted ? "ได้รับสลิปแล้ว รอตรวจสอบ" : "แจ้งชำระเงิน"}</h2>
       <p className="muted">
         {submitted
@@ -103,7 +110,7 @@ export function SlipUpload({
       )}
       <p role="status">{message}</p>
       <button className="primary" disabled={busy || !fileName}>
-        {busy ? "กำลังส่ง…" : submitted ? "ส่งสลิปใหม่" : "ส่งสลิปแจ้งชำระ"}
+        {busy ? "กำลังส่ง…" : roomName ? "ส่งสลิปห้อง " + roomName : submitted ? "ส่งสลิปใหม่" : "ส่งสลิปแจ้งชำระ"}
       </button>
     </form>
   );

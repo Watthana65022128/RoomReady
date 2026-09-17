@@ -6,11 +6,43 @@ const reply = (data: unknown, status = 200) => new Response(JSON.stringify(data)
 Deno.serve(async (req) => {
  try {
   if (!["GET","POST"].includes(req.method)) return reply({error:"ไม่รองรับคำขอ"},405);
-  const token = new URL(req.url).searchParams.get("token") || "";
-  if (!/^[a-f0-9]{64}$/.test(token)) return reply({error:"ไม่พบบิลหรือลิงก์หมดอายุ"},404);
-  const {data:i,error} = await db.from("invoices").select("*").eq("token",token).gt("token_expires_at",new Date().toISOString()).not("status","in","(draft,void)").maybeSingle();
+  const query = new URL(req.url).searchParams;
+  const groupToken = query.get("group_token");
+  let token = query.get("token") || "";
+  let property: {id:string;owner_id:string;name:string} | null = null;
+  const invoiceId = query.get("invoice_id");
+  if(groupToken !== null) {
+   if(!/^[a-f0-9]{64}$/.test(groupToken)) return reply({error:"ไม่พบลิงก์หอพัก"},404);
+   const {data:link,error:le}=await db.from("property_bill_links").select("property_id").eq("token",groupToken).maybeSingle();
+   if(le) throw le;
+   if(!link) return reply({error:"ลิงก์ถูกเปลี่ยนแล้วหรือไม่พบหอพัก"},404);
+   const {data:p,error:pe}=await db.from("properties").select("id,owner_id,name").eq("id",link.property_id).maybeSingle();
+   if(pe) throw pe;
+   if(!p) return reply({error:"ไม่พบหอพัก"},404);
+   property=p;
+   if(!invoiceId) {
+    if(req.method!=="GET") return reply({error:"กรุณาเลือกห้อง"},400);
+    const bills: {id:string;room_name:string;month:string}[]=[];
+    for(let offset=0;;offset+=1000){
+     const {data:page,error:be}=await db.from("invoices").select("id,room_name,month")
+      .eq("property_id",p.id).eq("owner_id",p.owner_id)
+      .gt("token_expires_at",new Date().toISOString()).not("status","in","(draft,void)")
+      .order("month",{ascending:false}).order("id").range(offset,offset+999);
+     if(be) throw be;
+     bills.push(...page);
+     if(page.length<1000) break;
+    }
+    return reply({property_name:p.name,bills});
+   }
+   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(invoiceId)) return reply({error:"ไม่พบบิล"},404);
+  }
+  if (!property && !/^[a-f0-9]{64}$/.test(token)) return reply({error:"ไม่พบบิลหรือลิงก์หมดอายุ"},404);
+  let lookup = db.from("invoices").select("*").gt("token_expires_at",new Date().toISOString()).not("status","in","(draft,void)");
+  lookup = property ? lookup.eq("id",invoiceId!).eq("property_id",property.id).eq("owner_id",property.owner_id) : lookup.eq("token",token);
+  const {data:i,error} = await lookup.maybeSingle();
   if(error) throw error;
   if(!i) return reply({error:"ไม่พบบิลหรือลิงก์หมดอายุ"},404);
+  token=i.token;
   if(req.method==="GET"){
    const {data:items,error:ie}=await db.from("invoice_items").select("label,kind,quantity,rate,amount,previous_reading,current_reading").eq("invoice_id",i.id).order("position");
    if(ie) throw ie;
@@ -23,7 +55,7 @@ Deno.serve(async (req) => {
     if(se) throw se;
     payment_qr_url=qr.signedUrl;
    }
-   return reply({payment_qr_url,property_name:i.property_name,room_name:i.room_name,tenant_name:i.tenant_name,month:i.month,due_date:i.due_date,status:i.status,total:i.total,payment_info:i.payment_info,paid_at:i.paid_at,items});
+   return reply({payment_qr_url,property_name:i.property_name,room_name:i.room_name,...(property?{}:{tenant_name:i.tenant_name}),month:i.month,due_date:i.due_date,status:i.status,total:i.total,payment_info:i.payment_info,paid_at:i.paid_at,items});
   }
   if(!["issued","overdue","slip_submitted"].includes(i.status)) return reply({error:"บิลนี้ไม่รับสลิปแล้ว"},409);
   if(Number(req.headers.get("content-length")||0)>5500000) return reply({error:"ไฟล์ต้องไม่เกิน 5 MB"},413);
@@ -44,7 +76,9 @@ Deno.serve(async (req) => {
   if(!mime||file.type!==mime)return reply({error:"รองรับเฉพาะภาพ JPG, PNG หรือ WebP"},400);
   const path=i.owner_id+"/"+i.id+"/"+crypto.randomUUID()+(png?".png":jpg?".jpg":".webp");
   const {error:ue}=await db.storage.from("slips").upload(path,bytes,{contentType:mime,upsert:false});if(ue)throw ue;
-  const {error:se}=await db.rpc("submit_slip",{bill_token:token,object_path:path});
+  const {error:se}=property
+   ? await db.rpc("submit_group_slip",{group_token:groupToken!,invoice_id:i.id,object_path:path})
+   : await db.rpc("submit_slip",{bill_token:token,object_path:path});
   if(se){await db.storage.from("slips").remove([path]);return reply({error:"บิลเปลี่ยนสถานะหรือส่งสลิปเกินกำหนด กรุณาโหลดใหม่"},409);}
   return reply({ok:true});
  }catch(e){console.error("bill-gateway", e instanceof Error?e.message:"request failed");return reply({error:"ทำรายการไม่สำเร็จ กรุณาลองอีกครั้ง"},500);}

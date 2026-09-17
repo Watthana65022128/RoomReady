@@ -106,3 +106,9 @@ export type PublicBill = Pick<
     | "current_reading"
   >[];
 };
+
+export type GroupPublicBill = Omit<PublicBill, "tenant_name">;
+export type GroupBillListing = {
+  property_name: string;
+  bills: { id: string; room_name: string; month: string }[];
+};
