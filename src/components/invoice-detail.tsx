@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { PaymentQr } from "./payment-qr";
 import type { Json, Tables } from "@/types/database";
 import { money, dateLabel, monthLabel, lineTotal } from "@/lib/domain";
 import { Badge, ShareBill, Modal, CommandForm, Field } from "./ui";
@@ -11,11 +12,13 @@ export function InvoiceDetail({
   items,
   slips,
   events,
+  paymentQrUrl,
 }: {
   invoice: Tables<"invoices">;
   items: Tables<"invoice_items">[];
   slips: { id: string; created_at: string; url: string }[];
   events: Tables<"payment_events">[];
+  paymentQrUrl?: string | null;
 }) {
   const router = useRouter(),
     [modal, setModal] = useState(""),
@@ -69,6 +72,7 @@ export function InvoiceDetail({
           <div className="payment-info">
             <span className="eyebrow">ข้อมูลรับเงิน</span>
             <p>{i.payment_info}</p>
+            <PaymentQr key={paymentQrUrl} url={paymentQrUrl} />
           </div>
           <div className="actions wrap padded">
             {i.status === "draft" ? (

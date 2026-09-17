@@ -13,6 +13,7 @@ import {
 } from "@/lib/domain";
 import { command } from "@/app/actions";
 import { LogoutDialog } from "./logout-dialog";
+import { PaymentQrSettings } from "./payment-qr-settings";
 import {
   Badge,
   Modal,
@@ -114,7 +115,9 @@ export function WorkspaceApp({
     .filter(
       (i) =>
         (step === "bills" ||
-          (status === "all" ? i.status !== "void" : billStatus(i) === status)) &&
+          (status === "all"
+            ? i.status !== "void"
+            : billStatus(i) === status)) &&
         (i.room_name + " " + i.tenant_name)
           .toLowerCase()
           .includes(query.toLowerCase()),
@@ -174,9 +177,7 @@ export function WorkspaceApp({
       <aside className="sidebar">
         <Link href="/" className="brand">
           <span className="brand-icon">R</span>
-          <span>
-            RoomReady
-          </span>
+          <span>RoomReady</span>
         </Link>
         <div className="side-caption">พื้นที่ทำงาน</div>
         <nav>
@@ -213,9 +214,14 @@ export function WorkspaceApp({
           <div>
             เจ้าของหอพัก<small>{data.properties.length} หอพักในบัญชี</small>
           </div>
-            <button type="button" title="ออกจากระบบ" aria-label="ออกจากระบบ" onClick={() => setModal("logout")}>
-              ↪
-            </button>
+          <button
+            type="button"
+            title="ออกจากระบบ"
+            aria-label="ออกจากระบบ"
+            onClick={() => setModal("logout")}
+          >
+            ↪
+          </button>
         </div>
       </aside>
       <div className="app-body">
@@ -249,7 +255,12 @@ export function WorkspaceApp({
               + เพิ่มหอพัก
             </button>
             <div className="mobile-logout">
-              <button type="button" className="small secondary" aria-label="ออกจากระบบ" onClick={() => setModal("logout")}>
+              <button
+                type="button"
+                className="small secondary"
+                aria-label="ออกจากระบบ"
+                onClick={() => setModal("logout")}
+              >
                 ↪
               </button>
             </div>
@@ -534,37 +545,41 @@ export function WorkspaceApp({
                       <div className="panel-head wrap">
                         <div>
                           <h2>
-                            {step === "bills" ? "บิลร่างรอตรวจและออกบิล" : "ติดตามการชำระ"}{" "}
+                            {step === "bills"
+                              ? "บิลร่างรอตรวจและออกบิล"
+                              : "ติดตามการชำระ"}{" "}
                             <span className="count">{visible.length}</span>
                           </h2>
                           <small className="muted">
                             ครบกำหนดวันที่ {property.due_day} ของเดือนถัดไป
                           </small>
                         </div>
-                        {step === "bills" && <div className="actions">
-                          <button
-                            className="secondary"
-                            disabled={busy}
-                            onClick={() => batch("drafts_create")}
-                          >
-                            สร้างบิลร่างเพิ่ม
-                          </button>
-                          <button
-                            className="primary"
-                            disabled={
-                              busy ||
-                              !invoices.some((i) => i.status === "draft")
-                            }
-                            onClick={() => setModal("issue")}
-                          >
-                            ออกบิลร่างทั้งหมด (
-                            {
-                              invoices.filter((i) => i.status === "draft")
-                                .length
-                            }
-                            )
-                          </button>
-                        </div>}
+                        {step === "bills" && (
+                          <div className="actions">
+                            <button
+                              className="secondary"
+                              disabled={busy}
+                              onClick={() => batch("drafts_create")}
+                            >
+                              สร้างบิลร่างเพิ่ม
+                            </button>
+                            <button
+                              className="primary"
+                              disabled={
+                                busy ||
+                                !invoices.some((i) => i.status === "draft")
+                              }
+                              onClick={() => setModal("issue")}
+                            >
+                              ออกบิลร่างทั้งหมด (
+                              {
+                                invoices.filter((i) => i.status === "draft")
+                                  .length
+                              }
+                              )
+                            </button>
+                          </div>
+                        )}
                       </div>
                       <div className="table-tools">
                         <input
@@ -573,31 +588,39 @@ export function WorkspaceApp({
                           value={query}
                           onChange={(e) => setQuery(e.target.value)}
                         />
-                        {step === "share" && <select
-                          aria-label="สถานะบิล"
-                          value={status}
-                          onChange={(e) => setStatus(e.target.value)}
-                        >
-                          <option value="all">บิลที่ออกแล้วทั้งหมด</option>
-                          {Object.entries({
-                            issued: "รอชำระ",
-                            slip_submitted: "รอตรวจสลิป",
-                            paid: "จ่ายแล้ว",
-                            overdue: "เกินกำหนด",
-                            void: "ประวัติบิลยกเลิก",
-                          }).map(([s, t]) => (
-                            <option key={s} value={s}>
-                              {t}
-                            </option>
-                          ))}
-                        </select>}
+                        {step === "share" && (
+                          <select
+                            aria-label="สถานะบิล"
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value)}
+                          >
+                            <option value="all">บิลที่ออกแล้วทั้งหมด</option>
+                            {Object.entries({
+                              issued: "รอชำระ",
+                              slip_submitted: "รอตรวจสลิป",
+                              paid: "จ่ายแล้ว",
+                              overdue: "เกินกำหนด",
+                              void: "ประวัติบิลยกเลิก",
+                            }).map(([s, t]) => (
+                              <option key={s} value={s}>
+                                {t}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                         <span className="muted">
                           {visible.length} บิล · ฿
                           {money(visible.reduce((s, i) => s + i.total, 0))}
                         </span>
                       </div>
                       {visible.length === 0 ? (
-                        <Empty title={step === "bills" ? "ไม่มีบิลร่างรอตรวจ" : "ไม่มีบิลในรายการนี้"}>
+                        <Empty
+                          title={
+                            step === "bills"
+                              ? "ไม่มีบิลร่างรอตรวจ"
+                              : "ไม่มีบิลในรายการนี้"
+                          }
+                        >
                           {step === "bills"
                             ? "กรอกและบันทึกมิเตอร์เพื่อสร้างบิลร่าง หรือไปขั้นแชร์และรับชำระเพื่อดูบิลที่ออกแล้ว"
                             : "ออกบิลจากขั้นตรวจและออกบิลก่อนแชร์และรับชำระ หรือลองเปลี่ยนตัวกรอง"}
@@ -641,20 +664,23 @@ export function WorkspaceApp({
                                           ? "ตรวจ / แก้บิล"
                                           : i.status === "slip_submitted"
                                             ? "ตรวจสลิป"
-                                            : ["issued", "overdue"].includes(i.status)
+                                            : ["issued", "overdue"].includes(
+                                                  i.status,
+                                                )
                                               ? "รับชำระ / ดูบิล"
                                               : "ดูบิล"}{" "}
                                         →
                                       </Link>
-                                      {step === "share" && !["draft", "void"].includes(
-                                        i.status,
-                                      ) && (
-                                        <ShareBill
-                                          token={i.token}
-                                          room={i.room_name}
-                                          total={money(i.total)}
-                                        />
-                                      )}
+                                      {step === "share" &&
+                                        !["draft", "void"].includes(
+                                          i.status,
+                                        ) && (
+                                          <ShareBill
+                                            token={i.token}
+                                            room={i.room_name}
+                                            total={money(i.total)}
+                                          />
+                                        )}
                                     </div>
                                   </td>
                                 </tr>
@@ -771,7 +797,9 @@ export function WorkspaceApp({
           </footer>
         </main>
       </div>
-      {modal === "logout" && <LogoutDialog onClose={() => setModal(null)} unsaved={meterDirty} />}
+      {modal === "logout" && (
+        <LogoutDialog onClose={() => setModal(null)} unsaved={meterDirty} />
+      )}
       {modal === "new-property" && (
         <Modal title="เพิ่มหอพัก" onClose={close}>
           <PropertyForm data={data} onDone={close} />
@@ -854,97 +882,109 @@ function PropertyForm({
   onDone: () => void;
 }) {
   return (
-    <CommandForm
-      op="property_save"
-      onDone={onDone}
-      build={(f) => ({
-        ...fields(f),
-        id: p?.id || "",
-        charges: String(f.get("charges") || "")
-          .split("\n")
-          .filter((s) => s.trim())
-          .map((s) => {
-            const [label, amount] = s.split("|");
-            return { label: label.trim(), amount: amount?.trim() || "0" };
-          }),
-      })}
-    >
-      <div className="form-grid">
-        <Field name="name" label="ชื่อหอพัก" value={p?.name} required />
-        <Field name="address" label="ที่อยู่" value={p?.address} />
-        <Field
-          name="rent"
-          label="ค่าเช่าเริ่มต้น / เดือน (บาท)"
-          type="number"
-          value={p?.rent ?? 0}
-          min="0"
-          max="999999"
-          step="0.01"
-          required
-        />
-        <Field
-          name="due_day"
-          label="ครบกำหนดวันที่ (เดือนถัดไป)"
-          type="number"
-          value={p?.due_day ?? 5}
-          min="1"
-          max="28"
-          required
-        />
-        <label>
-          วิธีคิดค่าน้ำ
-          <select name="water_method" defaultValue={p?.water_method || "meter"}>
-            <option value="meter">ตามมิเตอร์ (บาท / หน่วย)</option>
-            <option value="flat">เหมาจ่าย (บาท / เดือน)</option>
-          </select>
-        </label>
-        <Field
-          name="water_rate"
-          label="อัตราค่าน้ำ"
-          value={p?.water_rate ?? 0}
-          type="number"
-          min="0"
-          max="999999"
-          step="0.01"
-          required
-        />
-        <Field
-          name="electric_rate"
-          label="ค่าไฟ (บาท / หน่วย)"
-          value={p?.electric_rate ?? 0}
-          type="number"
-          min="0"
-          max="999999"
-          step="0.01"
-          required
-        />
-        <label className="full">
-          ข้อมูลรับเงินที่แสดงบนบิล
-          <textarea
-            name="payment_info"
+    <>
+      <CommandForm
+        op="property_save"
+        onDone={onDone}
+        build={(f) => ({
+          ...fields(f),
+          id: p?.id || "",
+          charges: String(f.get("charges") || "")
+            .split("\n")
+            .filter((s) => s.trim())
+            .map((s) => {
+              const [label, amount] = s.split("|");
+              return { label: label.trim(), amount: amount?.trim() || "0" };
+            }),
+        })}
+      >
+        <div className="form-grid">
+          <Field name="name" label="ชื่อหอพัก" value={p?.name} required />
+          <Field name="address" label="ที่อยู่" value={p?.address} />
+          <Field
+            name="rent"
+            label="ค่าเช่าเริ่มต้น / เดือน (บาท)"
+            type="number"
+            value={p?.rent ?? 0}
+            min="0"
+            max="999999"
+            step="0.01"
             required
-            maxLength={2000}
-            defaultValue={p?.payment_info}
-            placeholder="ธนาคาร / เลขบัญชี / ชื่อบัญชี"
           />
-        </label>
-        <label className="full">
-          ค่าใช้จ่ายประจำ (ชื่อรายการ | จำนวนบาท)
-          <textarea
-            name="charges"
-            rows={3}
-            defaultValue={data.charges
-              .filter((c) => c.property_id === p?.id)
-              .map((c) => c.label + " | " + c.amount)
-              .join("\n")}
-            placeholder={"อินเทอร์เน็ต | 200\nที่จอดรถ | 300"}
+          <Field
+            name="due_day"
+            label="ครบกำหนดวันที่ (เดือนถัดไป)"
+            type="number"
+            value={p?.due_day ?? 5}
+            min="1"
+            max="28"
+            required
           />
-        </label>
-      </div>
-      <p className="hint">
-        เปลี่ยนค่าเริ่มต้นมีผลกับบิลที่สร้างใหม่ บิลเดิมเก็บยอดเดิมไว้
-      </p>
-    </CommandForm>
+          <label>
+            วิธีคิดค่าน้ำ
+            <select
+              name="water_method"
+              defaultValue={p?.water_method || "meter"}
+            >
+              <option value="meter">ตามมิเตอร์ (บาท / หน่วย)</option>
+              <option value="flat">เหมาจ่าย (บาท / เดือน)</option>
+            </select>
+          </label>
+          <Field
+            name="water_rate"
+            label="อัตราค่าน้ำ"
+            value={p?.water_rate ?? 0}
+            type="number"
+            min="0"
+            max="999999"
+            step="0.01"
+            required
+          />
+          <Field
+            name="electric_rate"
+            label="ค่าไฟ (บาท / หน่วย)"
+            value={p?.electric_rate ?? 0}
+            type="number"
+            min="0"
+            max="999999"
+            step="0.01"
+            required
+          />
+          <label className="full">
+            ข้อมูลรับเงินที่แสดงบนบิล
+            <textarea
+              name="payment_info"
+              required
+              maxLength={2000}
+              defaultValue={p?.payment_info}
+              placeholder="ธนาคาร / เลขบัญชี / ชื่อบัญชี"
+            />
+          </label>
+          <label className="full">
+            ค่าใช้จ่ายประจำ (ชื่อรายการ | จำนวนบาท)
+            <textarea
+              name="charges"
+              rows={3}
+              defaultValue={data.charges
+                .filter((c) => c.property_id === p?.id)
+                .map((c) => c.label + " | " + c.amount)
+                .join("\n")}
+              placeholder={"อินเทอร์เน็ต | 200\nที่จอดรถ | 300"}
+            />
+          </label>
+        </div>
+        <p className="hint">
+          เปลี่ยนค่าเริ่มต้นมีผลกับบิลที่สร้างใหม่ บิลเดิมเก็บยอดเดิมไว้
+        </p>
+      </CommandForm>
+      {p ? (
+        <PaymentQrSettings key={p.id} propertyId={p.id} />
+      ) : (
+        <p className="hint">
+          บันทึกหอพักก่อน แล้วเพิ่มรูป QR รับชำระเงินได้ในการตั้งค่าหอ
+        </p>
+      )}
+    </>
   );
 }
 function RoomModal({

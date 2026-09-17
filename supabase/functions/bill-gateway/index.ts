@@ -14,7 +14,16 @@ Deno.serve(async (req) => {
   if(req.method==="GET"){
    const {data:items,error:ie}=await db.from("invoice_items").select("label,kind,quantity,rate,amount,previous_reading,current_reading").eq("invoice_id",i.id).order("position");
    if(ie) throw ie;
-   return reply({property_name:i.property_name,room_name:i.room_name,tenant_name:i.tenant_name,month:i.month,due_date:i.due_date,status:i.status,total:i.total,payment_info:i.payment_info,paid_at:i.paid_at,items});
+   const folder=i.owner_id+"/"+i.property_id;
+   const {data:qrFiles,error:qe}=await db.storage.from("payment-qr").list(folder,{search:"qr",limit:10});
+   if(qe) throw qe;
+   let payment_qr_url=null;
+   if(qrFiles.some(file=>file.name==="qr")){
+    const {data:qr,error:se}=await db.storage.from("payment-qr").createSignedUrl(folder+"/qr",Math.min(3600,Math.max(1,Math.floor((new Date(i.token_expires_at).getTime()-Date.now())/1000))));
+    if(se) throw se;
+    payment_qr_url=qr.signedUrl;
+   }
+   return reply({payment_qr_url,property_name:i.property_name,room_name:i.room_name,tenant_name:i.tenant_name,month:i.month,due_date:i.due_date,status:i.status,total:i.total,payment_info:i.payment_info,paid_at:i.paid_at,items});
   }
   if(!["issued","overdue","slip_submitted"].includes(i.status)) return reply({error:"บิลนี้ไม่รับสลิปแล้ว"},409);
   if(Number(req.headers.get("content-length")||0)>5500000) return reply({error:"ไฟล์ต้องไม่เกิน 5 MB"},413);
@@ -40,4 +49,3 @@ Deno.serve(async (req) => {
   return reply({ok:true});
  }catch(e){console.error("bill-gateway", e instanceof Error?e.message:"request failed");return reply({error:"ทำรายการไม่สำเร็จ กรุณาลองอีกครั้ง"},500);}
 });
-

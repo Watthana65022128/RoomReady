@@ -4,6 +4,7 @@ import type { PublicBill } from "@/lib/domain";
 import { money, dateLabel, monthLabel } from "@/lib/domain";
 import { Badge } from "@/components/ui";
 import { SlipUpload } from "@/components/slip-upload";
+import { PaymentQr } from "@/components/payment-qr";
 export const dynamic = "force-dynamic";
 export default async function Page({
   params,
@@ -55,6 +56,7 @@ export default async function Page({
         <div className="payment-info">
           <span className="eyebrow">โอนเงินเข้าบัญชี</span>
           <p>{bill.payment_info}</p>
+          <PaymentQr key={bill.payment_qr_url} url={bill.payment_qr_url} />
         </div>
         {bill.status === "paid" ? (
           <div className="paid-confirmation">

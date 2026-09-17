@@ -94,6 +94,7 @@ export type PublicBill = Pick<
   | "payment_info"
   | "paid_at"
 > & {
+  payment_qr_url?: string | null;
   items: Pick<
     Tables<"invoice_items">,
     | "label"

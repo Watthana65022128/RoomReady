@@ -1954,3 +1954,7 @@ th,
     font-size: 13px;
   }
 }
+
+.payment-qr { display: grid; justify-items: center; gap: 12px; padding: 20px 0; text-align: center; }
+.payment-qr img, .qr-preview { display: block; width: min(100%, 280px); height: auto; max-height: 420px; object-fit: contain; background: white; padding: 12px; border: 1px solid #e2e8e4; border-radius: 12px; }
+.qr-settings { margin-top: 28px; padding-top: 24px; border-top: 1px solid #e2e8e4; }

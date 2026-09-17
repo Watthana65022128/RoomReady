@@ -1,4 +1,5 @@
 import { owner } from "@/lib/data";
+import { paymentQrUrl } from "@/lib/payment-qr";
 import { notFound } from "next/navigation";
 import { InvoiceDetail } from "@/components/invoice-detail";
 export const dynamic = "force-dynamic";
@@ -47,6 +48,7 @@ export default async function Page({
   return (
     <InvoiceDetail
       invoice={invoice}
+      paymentQrUrl={await paymentQrUrl(db, user.id, invoice.property_id)}
       items={items.data || []}
       slips={signed}
       events={events.data || []}

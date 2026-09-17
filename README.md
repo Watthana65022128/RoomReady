@@ -81,3 +81,9 @@ pnpm check:supabase
 Run `supabase/tests/mvp.sql` with a privileged SQL runner for transactional backend tests (fixtures rolled back). Gateway scripts require a disposable issued invoice with the expected QA amount and a running local app; they create synthetic slip records. See `docs/verification.md` for completed browser/API tests and remaining production configuration.
 
 Partial payments, deposits, tax invoices, proration, OCR, automatic bank reconciliation, LINE OA delivery, and automated reminders are outside this MVP.
+
+## Payment QR images
+
+Owners can save, replace or remove JPG, PNG or WebP images (up to 2 MB) in property settings after creating the property. QR uploads save separately from the property form. The latest QR for a property appears on all its bill links, including existing bills; payment text and amounts remain invoice snapshots. Tenants can open/save the original image for their banking app, then submit a slip as before.
+
+For a fresh project, apply `supabase/migrations/20260915142646_owner_payment_qr_storage.sql` and then `supabase/migrations/20260915143024_qualify_payment_qr_object_path.sql` after the schema and hardening scripts above, then deploy the updated bill-gateway. The migration and gateway version 2 have been applied to the configured project. Images live at `payment-qr/<owner-id>/<property-id>/qr` in a private bucket. RLS checks user and property ownership. Tenant image URLs are signed after bill-token validation and expire within one hour or at the bill-token expiry, whichever is earlier. Already issued image URLs remain usable until expiry. QR contents are not decoded and payment is not automatically confirmed.
