@@ -14,17 +14,47 @@ export type Database = {
   };
   public: {
     Tables: {
+      owner_subscriptions: {
+        Row: {
+          owner_id: string;
+          plan: "trial" | "starter" | "standard" | "pro";
+          trial_started_at: string;
+          trial_ends_at: string;
+          expires_at: string | null;
+          room_count: number;
+          property_count: number;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      subscription_requests: {
+        Row: {
+          id: string;
+          owner_id: string;
+          plan: "starter" | "standard" | "pro";
+          status: "pending" | "approved" | "cancelled";
+          created_at: string;
+          resolved_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       property_bill_links: {
         Row: { property_id: string; token: string };
         Insert: { property_id: string; token: string };
         Update: { token?: string };
-        Relationships: [{
-          foreignKeyName: "property_bill_links_property_id_fkey";
-          columns: ["property_id"];
-          isOneToOne: true;
-          referencedRelation: "properties";
-          referencedColumns: ["id"];
-        }];
+        Relationships: [
+          {
+            foreignKeyName: "property_bill_links_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: true;
+            referencedRelation: "properties";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       billing_cycles: {
         Row: {
@@ -531,6 +561,22 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      request_subscription: {
+        Args: { requested_plan: string };
+        Returns: string;
+      };
+      approve_subscription: {
+        Args: { request_id: string; selected_plan: string };
+        Returns: undefined;
+      };
+      subscription_admin: {
+        Args: { search: string; page_offset: number };
+        Returns: Json;
+      };
+      is_subscription_admin: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
       submit_group_slip: {
         Args: { group_token: string; invoice_id: string; object_path: string };
         Returns: boolean;
@@ -545,12 +591,7 @@ export type Database = {
       charge_kind: "rent" | "water" | "electric" | "other";
       cycle_status: "open" | "issued";
       invoice_status:
-        | "draft"
-        | "issued"
-        | "slip_submitted"
-        | "paid"
-        | "overdue"
-        | "void";
+        "draft" | "issued" | "slip_submitted" | "paid" | "overdue" | "void";
       water_method: "meter" | "flat";
     };
     CompositeTypes: {
@@ -570,12 +611,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -597,13 +638,12 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -622,13 +662,12 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -647,13 +686,12 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -666,11 +704,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }

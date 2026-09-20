@@ -1,6 +1,6 @@
 # RoomReady — Dormitory Micro SaaS
 
-Thai owner workspace for multiple dormitories, designed for monthly billing at 50–200 rooms.
+Thai landing page and owner workspace for one dormitory per account, with monthly billing for up to 200 rooms. Trial: 30 days / 30 rooms. Starter: ฿99 / 30 rooms; Standard: ฿199 / 100 rooms; Pro: ฿299 / 200 rooms.
 
 ## Run
 
@@ -11,7 +11,7 @@ pnpm install
 pnpm dev
 ```
 
-Open http://localhost:3000. The current task preview runs at http://localhost:3100.
+Open http://localhost:3000 for the landing page and /dashboard for the authenticated workspace. The subscription task preview runs at http://localhost:3102.
 
 If this host's pnpm wrapper tries to reinstall dependencies while running scripts, invoke the installed tools directly:
 
@@ -55,7 +55,7 @@ Storage bucket `slips` is private. Owners can obtain short-lived read URLs only 
 
 ## Product rules
 
-- One current tenancy per room. Multiple properties per owner; no staff roles.
+- One current tenancy per room. One property per owner; package limits count every room across the account. Platform admins approve monthly subscriptions; they do not get owner billing permissions.
 - Water is metered or flat per property. Rent and utility rates can be overridden per room; blank means inherit, zero is a real override.
 - Recurring charges apply to all billed rooms in that property. Additional line items can be edited on drafts.
 - A cycle is one calendar month. Default due date is day 1–28 of the following month.
@@ -67,6 +67,10 @@ Storage bucket `slips` is private. Owners can obtain short-lived read URLs only 
 - Revenue is the total of currently confirmed paid invoices by Bangkok confirmation month, not invoice month. Reversals clear paid fields and append compensating audit events.
 - Bill tokens expire after 18 months. Owners can rotate/renew links; old links stop working.
 - Sharing opens native share where supported; otherwise it copies the message/link. It does not claim LINE delivery confirmation.
+
+## Subscriptions and landing page
+
+Apply `supabase/migrations/20260920143225_owner_subscriptions.sql` after all earlier schema/hardening/migration files. This migration is already applied to the configured project. Owners request plans at `/subscription`; platform admins review at `/admin/subscriptions`. There is no automatic billing or payment verification. See [subscription operations](docs/subscriptions.md) for admin setup, expiry rules, test commands, and rollback guidance.
 
 ## Verification
 

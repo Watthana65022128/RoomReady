@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Kanit } from "next/font/google";
 import "./globals.css";
+import "./subscription.css";
 import { ToastProvider } from "@/components/toast";
 
 const kanit = Kanit({
@@ -19,7 +20,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="th" className={kanit.variable}>
-      <body><ToastProvider>{children}</ToastProvider></body>
+      <body>
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { useOwnerAccess } from "./owner-access";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -20,11 +21,15 @@ export function InvoiceDetail({
   events: Tables<"payment_events">[];
   paymentQrUrl?: string | null;
 }) {
+  const canWrite = useOwnerAccess();
   const router = useRouter(),
     [modal, setModal] = useState(""),
     [editItems, setItems] = useState(items.map((x) => ({ ...x })));
   const back =
-    "/?tab=billing&property=" + i.property_id + "&month=" + i.month.slice(0, 7);
+    "/dashboard?tab=billing&property=" +
+    i.property_id +
+    "&month=" +
+    i.month.slice(0, 7);
   const done = () => {
     setModal("");
     router.refresh();
@@ -35,6 +40,12 @@ export function InvoiceDetail({
         <Link href={back}>← กลับรอบบิล</Link>
         <span className="brand">RoomReady</span>
       </header>
+      {!canWrite && (
+        <p className="notice">
+          สิทธิ์หมดอายุแล้ว ดูบิลเดิมได้{" "}
+          <Link href="/subscription">ขอเปิดใช้แพ็กเกจ →</Link>
+        </p>
+      )}
       <div className="page-heading">
         <div>
           <span className="eyebrow">
@@ -77,11 +88,16 @@ export function InvoiceDetail({
           <div className="actions wrap padded">
             {i.status === "draft" ? (
               <>
-                <button className="primary" onClick={() => setModal("edit")}>
+                <button
+                  className="primary"
+                  disabled={!canWrite}
+                  onClick={() => setModal("edit")}
+                >
                   แก้ไขบิลร่าง
                 </button>
                 <button
                   className="secondary"
+                  disabled={!canWrite}
                   onClick={() => setModal("delete")}
                 >
                   ลบร่างเพื่อแก้มิเตอร์
@@ -118,6 +134,7 @@ export function InvoiceDetail({
                 <p>{i.payment_method === "cash" ? "รับเงินสด" : "โอนเงิน"}</p>
                 <button
                   className="danger-button"
+                  disabled={!canWrite}
                   onClick={() => setModal("revoke")}
                 >
                   ยกเลิกการรับเงิน
@@ -129,18 +146,21 @@ export function InvoiceDetail({
                 <div className="stack">
                   <button
                     className="primary"
+                    disabled={!canWrite}
                     onClick={() => setModal("transfer")}
                   >
                     ยืนยันรับเงินโอน
                   </button>
                   <button
                     className="secondary"
+                    disabled={!canWrite}
                     onClick={() => setModal("cash")}
                   >
                     บันทึกรับเงินสด
                   </button>
                   <button
                     className="text-button text-danger"
+                    disabled={!canWrite}
                     onClick={() => setModal("void")}
                   >
                     ยกเลิกบิล
@@ -180,7 +200,11 @@ export function InvoiceDetail({
             )}
           </section>
           {i.status !== "draft" && i.status !== "void" && (
-            <button className="text-button" onClick={() => setModal("renew")}>
+            <button
+              className="text-button"
+              disabled={!canWrite}
+              onClick={() => setModal("renew")}
+            >
               ออกลิงก์ใหม่ / เพิกถอนลิงก์เดิม
             </button>
           )}

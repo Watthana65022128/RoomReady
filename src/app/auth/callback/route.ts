@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   const next =
     request.nextUrl.searchParams.get("next") === "/reset-password"
       ? "/reset-password"
-      : "/";
+      : "/dashboard";
   if (code) {
     const db = await createClient();
     const { error } = await db.auth.exchangeCodeForSession(code);

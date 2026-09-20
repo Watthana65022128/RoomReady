@@ -4,6 +4,7 @@ import { billStatus, statusText } from "@/lib/domain";
 import type { Tables, Json } from "@/types/database";
 import { command } from "@/app/actions";
 import { useToast } from "./toast";
+import { useOwnerAccess } from "./owner-access";
 export function Badge({
   invoice,
 }: {
@@ -96,6 +97,7 @@ export function CommandForm({
   const [pending, setPending] = useState(false),
     [message, setMessage] = useState("");
   const notify = useToast();
+  const canWrite = useOwnerAccess();
   return (
     <form
       className="stack"
@@ -117,11 +119,11 @@ export function CommandForm({
         }
       }}
     >
-      <fieldset disabled={pending}>{children}</fieldset>
+      <fieldset disabled={pending || !canWrite}>{children}</fieldset>
       <p role="status" className="error">
         {message}
       </p>
-      <button className="primary" disabled={pending}>
+      <button className="primary" disabled={pending || !canWrite}>
         {pending ? "กำลังบันทึก…" : label}
       </button>
     </form>

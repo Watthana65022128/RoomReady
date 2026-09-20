@@ -26,23 +26,33 @@ import {
 } from "./ui";
 import { MeterGrid } from "./meters";
 import { useToast } from "./toast";
+import { useOwnerAccess } from "./owner-access";
+import { PLANS, subscriptionAccess, type Subscription } from "@/lib/plans";
 
 type Tab = "overview" | "billing" | "rooms" | "settings";
 export function WorkspaceApp({
   data,
   initial,
+  subscription,
 }: {
   data: Workspace;
+  subscription: Subscription;
   initial: { property?: string; tab?: string; month?: string };
 }) {
   const router = useRouter();
   const notify = useToast();
+  const canWrite = useOwnerAccess();
+  const access = { ...subscriptionAccess(subscription), active: canWrite };
+  const roomSlots = Math.max(0, access.limit - data.rooms.length);
   const [tab, setTab] = useState<Tab>(
       ["overview", "billing", "rooms", "settings"].includes(initial.tab || "")
         ? (initial.tab as Tab)
         : "overview",
     ),
-    [propertyId, setProperty] = useState(initial.property || ""),
+    [propertyId, setProperty] = useState(
+      initial.property ||
+        (data.properties.length === 1 ? data.properties[0].id : ""),
+    ),
     [month, setMonth] = useState(
       /^(20\d{2}|2100)-(0[1-9]|1[0-2])$/.test(initial.month || "")
         ? initial.month!
@@ -210,6 +220,9 @@ export function WorkspaceApp({
             </button>
           ))}
         </nav>
+        <Link href="/subscription" className="subscription-side-link">
+          แพ็กเกจและสิทธิ์ใช้งาน ↗
+        </Link>
         <div className="side-bottom">
           <div className="owner-avatar">จ</div>
           <div>
@@ -251,6 +264,8 @@ export function WorkspaceApp({
             </select>
             <button
               className="small secondary"
+              disabled={!access.active || data.properties.length >= 1}
+              title="เจ้าของ 1 บัญชีมีได้ 1 หอพัก"
               onClick={() => setModal("new-property")}
             >
               + เพิ่มหอพัก
@@ -268,6 +283,36 @@ export function WorkspaceApp({
           </div>
         </header>
         <main className="workspace">
+          <div
+            className={`subscription-banner ${access.active ? "" : "expired"}`}
+          >
+            <div>
+              <strong>
+                {access.trial
+                  ? `ทดลองฟรี · เหลือ ${access.daysLeft} วัน`
+                  : PLANS[subscription.plan as keyof typeof PLANS].name}
+              </strong>
+              <span>
+                {" "}
+                ใช้แล้ว {data.rooms.length} / {access.limit} ห้อง · 1
+                หอพักต่อบัญชี
+              </span>
+              {!access.active && (
+                <p>
+                  สิทธิ์หมดอายุแล้ว ดูข้อมูลเดิมได้
+                  แต่ยังบันทึกการเปลี่ยนแปลงไม่ได้
+                </p>
+              )}
+              {data.rooms.length > access.limit && (
+                <p>
+                  เก็บข้อมูลเดิมครบแล้ว เพิ่มห้องได้เมื่อจำนวนห้องต่ำกว่าโควตา
+                </p>
+              )}
+            </div>
+            <Link href="/subscription">
+              {access.active ? "จัดการแพ็กเกจ →" : "ขอเปิดใช้แพ็กเกจ →"}
+            </Link>
+          </div>
           <div className="page-heading">
             <div>
               <span className="eyebrow">
@@ -310,6 +355,7 @@ export function WorkspaceApp({
               <p>เพิ่มหอพัก → เพิ่มห้องและผู้เช่า → เริ่มรอบบิล</p>
               <button
                 className="primary"
+                disabled={!access.active}
                 onClick={() => setModal("new-property")}
               >
                 + เพิ่มหอพักแรก
@@ -555,12 +601,18 @@ export function WorkspaceApp({
                             ครบกำหนดวันที่ {property.due_day} ของเดือนถัดไป
                           </small>
                         </div>
-                        {step === "share" && <SharePropertyBills key={property.id} propertyId={property.id} name={property.name} />}
+                        {step === "share" && (
+                          <SharePropertyBills
+                            key={property.id}
+                            propertyId={property.id}
+                            name={property.name}
+                          />
+                        )}
                         {step === "bills" && (
                           <div className="actions">
                             <button
                               className="secondary"
-                              disabled={busy}
+                              disabled={busy || !canWrite}
                               onClick={() => batch("drafts_create")}
                             >
                               สร้างบิลร่างเพิ่ม
@@ -568,6 +620,7 @@ export function WorkspaceApp({
                             <button
                               className="primary"
                               disabled={
+                                !canWrite ||
                                 busy ||
                                 !invoices.some((i) => i.status === "draft")
                               }
@@ -704,6 +757,7 @@ export function WorkspaceApp({
                     </h2>
                     <button
                       className="primary"
+                      disabled={!access.active || roomSlots === 0}
                       onClick={() => setModal("rooms-add")}
                     >
                       + เพิ่มหลายห้อง
@@ -833,7 +887,7 @@ export function WorkspaceApp({
                 />
               </label>
               <p className="hint">
-                เพิ่มได้ครั้งละ 200 ห้อง ใช้อัตราเริ่มต้นของหอพัก
+                เพิ่มได้อีก {roomSlots} ห้อง ใช้อัตราเริ่มต้นของหอพัก
               </p>
             </div>
           </CommandForm>
@@ -862,7 +916,7 @@ export function WorkspaceApp({
           <p className="hint">ตรวจบัญชีรับเงินและยอดแต่ละห้องก่อนยืนยัน</p>
           <button
             className="primary"
-            disabled={busy}
+            disabled={busy || !canWrite}
             onClick={() => batch("issue_all")}
           >
             {busy ? "กำลังออกบิล…" : "ยืนยันออกบิล"}

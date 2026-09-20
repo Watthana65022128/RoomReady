@@ -1,7 +1,10 @@
 begin;
-insert into auth.users(id,instance_id,aud,role,email) values
-('11111111-1111-4111-8111-111111111111','00000000-0000-0000-0000-000000000000','authenticated','authenticated','sql-owner-a@example.invalid'),
-('22222222-2222-4222-8222-222222222222','00000000-0000-0000-0000-000000000000','authenticated','authenticated','sql-owner-b@example.invalid');
+insert into auth.users(id,instance_id,aud,role,email,created_at) values
+('11111111-1111-4111-8111-111111111111','00000000-0000-0000-0000-000000000000','authenticated','authenticated','sql-owner-a@example.invalid',now()),
+('22222222-2222-4222-8222-222222222222','00000000-0000-0000-0000-000000000000','authenticated','authenticated','sql-owner-b@example.invalid',now()),
+('44444444-4444-4444-8444-444444444444','00000000-0000-0000-0000-000000000000','authenticated','authenticated','sql-owner-c@example.invalid',now());
+-- Privileged test setup only: the 200-room billing fixture uses Pro.
+update public.owner_subscriptions set plan='pro',expires_at=now()+interval '1 month' where owner_id='11111111-1111-4111-8111-111111111111';
 set local role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 do $$
@@ -44,6 +47,8 @@ begin
   update public.invoices set total=1 where id=i.id;
   raise exception 'TEST FAILURE direct financial write';
  exception when insufficient_privilege then null; end;
+ -- Flat-water fixture belongs to a different owner (one property per owner).
+ perform set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',true);
  -- Incomplete and decreasing meters, carry forward, room override, flat water.
  result:=public.owner_command('property_save','{"name":"QA flat","rent":3000,"water_method":"flat","water_rate":150,"electric_rate":7,"due_day":5,"payment_info":"QA","charges":[]}');
  p2:=(result->>'id')::uuid;

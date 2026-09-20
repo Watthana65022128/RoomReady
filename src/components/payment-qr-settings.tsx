@@ -1,4 +1,5 @@
 "use client";
+import { useOwnerAccess } from "./owner-access";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
@@ -9,6 +10,7 @@ import {
 import { QR_MAX_BYTES } from "@/lib/payment-qr-validation";
 
 export function PaymentQrSettings({ propertyId }: { propertyId: string }) {
+  const canWrite = useOwnerAccess();
   const [url, setUrl] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -85,7 +87,7 @@ export function PaymentQrSettings({ propertyId }: { propertyId: string }) {
           ref={input}
           type="file"
           accept="image/jpeg,image/png,image/webp"
-          disabled={pending}
+          disabled={pending || !canWrite}
           onChange={(event) => {
             const selected = event.target.files?.[0] || null;
             setMessage("");
@@ -112,7 +114,7 @@ export function PaymentQrSettings({ propertyId }: { propertyId: string }) {
         <button
           type="button"
           className="primary"
-          disabled={pending || !file}
+          disabled={pending || !file || !canWrite}
           onClick={() => save()}
         >
           {pending ? "กำลังดำเนินการ…" : "บันทึกรูป QR"}
@@ -121,7 +123,7 @@ export function PaymentQrSettings({ propertyId }: { propertyId: string }) {
           <button
             type="button"
             className="secondary"
-            disabled={pending}
+            disabled={pending || !canWrite}
             onClick={() => save(true)}
           >
             ลบรูป QR

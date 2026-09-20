@@ -1,5 +1,10 @@
 "use client";
-import { useActionState, useEffect, useState, type ComponentProps } from "react";
+import {
+  useActionState,
+  useEffect,
+  useState,
+  type ComponentProps,
+} from "react";
 import Link from "next/link";
 import { authAction } from "@/app/actions";
 import { useToast } from "./toast";
@@ -39,7 +44,7 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
   return (
     <main className="auth-page">
       <section className="auth-story">
-        <Link href="/login" className="brand">
+        <Link href="/" className="brand">
           <span className="brand-icon">R</span>RoomReady
         </Link>
         <div>
@@ -64,7 +69,11 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
       <section className="auth-panel">
         <div className="auth-card">
           <h2>{title}</h2>
-          <p className="muted">จัดการหอพักของคุณได้จากทุกอุปกรณ์</p>
+          <p className="muted">
+            {signup
+              ? "ทดลองฟรี 30 วัน · 1 หอพัก · ไม่เกิน 30 ห้อง · ไม่ต้องผูกบัตร"
+              : "จัดการหอพักของคุณได้จากทุกอุปกรณ์"}
+          </p>
           <form action={action} className="stack">
             {mode !== "reset" && (
               <label>
@@ -79,7 +88,9 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
                   placeholder="you@example.com"
                 />
                 {signup && email && !isValidEmail(email) && (
-                  <small className="field-error">รูปแบบอีเมลหรือโดเมนไม่ถูกต้อง</small>
+                  <small className="field-error">
+                    รูปแบบอีเมลหรือโดเมนไม่ถูกต้อง
+                  </small>
                 )}
               </label>
             )}
@@ -102,9 +113,15 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
             {signup && (
               <>
                 <ul className="password-rules" aria-label="เงื่อนไขรหัสผ่าน">
-                  <li className={checks.length ? "valid" : ""}>8–72 ตัวอักษร</li>
-                  <li className={checks.lowercase ? "valid" : ""}>ตัวพิมพ์เล็ก</li>
-                  <li className={checks.uppercase ? "valid" : ""}>ตัวพิมพ์ใหญ่</li>
+                  <li className={checks.length ? "valid" : ""}>
+                    8–72 ตัวอักษร
+                  </li>
+                  <li className={checks.lowercase ? "valid" : ""}>
+                    ตัวพิมพ์เล็ก
+                  </li>
+                  <li className={checks.uppercase ? "valid" : ""}>
+                    ตัวพิมพ์ใหญ่
+                  </li>
                   <li className={checks.number ? "valid" : ""}>ตัวเลข</li>
                   <li className={checks.symbol ? "valid" : ""}>สัญลักษณ์</li>
                 </ul>
@@ -117,7 +134,9 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
                     maxLength={PASSWORD_MAX_LENGTH}
                     autoComplete="new-password"
                     onChange={(event) => setConfirmation(event.target.value)}
-                    aria-invalid={Boolean(confirmation && password !== confirmation)}
+                    aria-invalid={Boolean(
+                      confirmation && password !== confirmation,
+                    )}
                     placeholder="กรอกรหัสผ่านอีกครั้ง"
                   />
                   {confirmation && password !== confirmation && (
@@ -161,7 +180,8 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
 
 function PasswordInput(props: Omit<ComponentProps<"input">, "type">) {
   const [revealed, setRevealed] = useState(false);
-  const label = props.name === "confirm_password" ? "รหัสผ่านยืนยัน" : "รหัสผ่าน";
+  const label =
+    props.name === "confirm_password" ? "รหัสผ่านยืนยัน" : "รหัสผ่าน";
   return (
     <span className="password-input">
       <input {...props} type={revealed ? "text" : "password"} />

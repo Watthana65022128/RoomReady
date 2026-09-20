@@ -1,4 +1,6 @@
 import { owner } from "@/lib/data";
+import { readSubscription } from "@/lib/subscription";
+import { OwnerAccess } from "@/components/owner-access";
 import { paymentQrUrl } from "@/lib/payment-qr";
 import { notFound } from "next/navigation";
 import { InvoiceDetail } from "@/components/invoice-detail";
@@ -46,12 +48,14 @@ export default async function Page({
     }),
   );
   return (
-    <InvoiceDetail
-      invoice={invoice}
-      paymentQrUrl={await paymentQrUrl(db, user.id, invoice.property_id)}
-      items={items.data || []}
-      slips={signed}
-      events={events.data || []}
-    />
+    <OwnerAccess subscription={await readSubscription(db, user.id)}>
+      <InvoiceDetail
+        invoice={invoice}
+        paymentQrUrl={await paymentQrUrl(db, user.id, invoice.property_id)}
+        items={items.data || []}
+        slips={signed}
+        events={events.data || []}
+      />
+    </OwnerAccess>
   );
 }

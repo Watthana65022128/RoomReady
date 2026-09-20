@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { paymentQrUrl } from "@/lib/payment-qr";
 import { QR_MAX_BYTES, qrImageType } from "@/lib/payment-qr-validation";
 import { revalidatePath } from "next/cache";
+import { requireActiveSubscription } from "@/lib/subscription";
 
 async function context(propertyId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(propertyId))
@@ -26,7 +27,8 @@ export async function readPaymentQr(propertyId: string) {
   return paymentQrUrl(db, user.id, propertyId);
 }
 export async function savePaymentQr(propertyId: string, form: FormData) {
-  const { db, path } = await context(propertyId);
+  const { db, path, user } = await context(propertyId);
+  await requireActiveSubscription(db, user.id);
   const file = form.get("file");
   if (!(file instanceof File) || !file.size || file.size > QR_MAX_BYTES)
     return { ok: false, message: "เลือกรูป QR ขนาดไม่เกิน 2 MB" };
@@ -34,20 +36,19 @@ export async function savePaymentQr(propertyId: string, form: FormData) {
   const mime = qrImageType(bytes);
   if (!mime || file.type !== mime)
     return { ok: false, message: "รองรับเฉพาะรูป JPG, PNG หรือ WebP" };
-  const { error } = await db.storage
-    .from("payment-qr")
-    .upload(path, bytes, {
-      contentType: mime,
-      upsert: true,
-      cacheControl: "0",
-    });
+  const { error } = await db.storage.from("payment-qr").upload(path, bytes, {
+    contentType: mime,
+    upsert: true,
+    cacheControl: "0",
+  });
   if (error)
     return { ok: false, message: "บันทึกรูป QR ไม่สำเร็จ กรุณาลองอีกครั้ง" };
   revalidatePath("/", "layout");
   return { ok: true, message: "บันทึกรูป QR เรียบร้อย ลูกหอดูได้จากลิงก์บิล" };
 }
 export async function removePaymentQr(propertyId: string) {
-  const { db, path } = await context(propertyId);
+  const { db, path, user } = await context(propertyId);
+  await requireActiveSubscription(db, user.id);
   const { error } = await db.storage.from("payment-qr").remove([path]);
   if (error)
     return { ok: false, message: "ลบรูป QR ไม่สำเร็จ กรุณาลองอีกครั้ง" };

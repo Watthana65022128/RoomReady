@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import type { Json } from "@/types/database";
 import type { ActionResult } from "@/lib/domain";
+import { requireActiveSubscription } from "@/lib/subscription";
 import {
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
@@ -42,6 +43,13 @@ export async function command(op: string, p: Json): Promise<ActionResult> {
     data: { user },
   } = await db.auth.getUser();
   if (!user) return { message: "เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่" };
+  try {
+    await requireActiveSubscription(db, user.id);
+  } catch (error) {
+    return {
+      message: error instanceof Error ? error.message : "ตรวจสิทธิ์ไม่สำเร็จ",
+    };
+  }
   // IDs in input select a resource; identity always comes from the verified session.
   for (const key of ["id", "property_id", "room_id"]) {
     if (
@@ -62,7 +70,8 @@ export async function command(op: string, p: Json): Promise<ActionResult> {
             : "บันทึกไม่สำเร็จ กรุณาตรวจข้อมูลแล้วลองอีกครั้ง";
     return { message };
   }
-  revalidatePath("/");
+  revalidatePath("/dashboard");
+  revalidatePath("/invoices", "layout");
   const result = data as { id?: string; count?: number };
   return {
     ok: true,
@@ -117,7 +126,7 @@ export async function authAction(
     if (!user) return { message: "ลิงก์หมดอายุ กรุณาขอลิงก์ใหม่" };
     const { error } = await db.auth.updateUser({ password });
     if (error) return { message: "เปลี่ยนรหัสผ่านไม่สำเร็จ กรุณาขอลิงก์ใหม่" };
-    redirect("/");
+    redirect("/dashboard");
   }
   if (mode === "signup") {
     const { data, error } = await db.auth.signUp({
@@ -132,12 +141,12 @@ export async function authAction(
         ok: true,
         message: "ตรวจอีเมลเพื่อยืนยันบัญชี แล้วกลับมาเข้าสู่ระบบ",
       };
-    redirect("/?toast=register");
+    redirect("/dashboard?toast=register");
   } else {
     const { error } = await db.auth.signInWithPassword({ email, password });
     if (error) return { message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" };
   }
-  redirect("/?toast=login");
+  redirect("/dashboard?toast=login");
 }
 export async function logout() {
   const db = await createClient();

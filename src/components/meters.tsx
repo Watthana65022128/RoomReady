@@ -1,4 +1,5 @@
 "use client";
+import { useOwnerAccess } from "./owner-access";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { command } from "@/app/actions";
@@ -129,6 +130,7 @@ export function MeterGrid({
           "electric_current",
         ]
       : ["electric_previous", "electric_current"];
+  const canWrite = useOwnerAccess();
   return (
     <section className="panel">
       <div className="panel-head wrap">
@@ -143,7 +145,7 @@ export function MeterGrid({
         <div className="actions">
           <button
             className="secondary"
-            disabled={saving || dirty.size === 0}
+            disabled={!canWrite || saving || dirty.size === 0}
             onClick={save}
           >
             {saving
@@ -152,7 +154,9 @@ export function MeterGrid({
           </button>
           <button
             className="primary"
-            disabled={busy || saving || dirty.size > 0 || savedReady === 0}
+            disabled={
+              !canWrite || busy || saving || dirty.size > 0 || savedReady === 0
+            }
             onClick={onDraft}
           >
             {busy ? "กำลังสร้าง…" : `สร้างบิลร่าง (${savedReady})`}
@@ -256,44 +260,45 @@ export function MeterGrid({
                               : "ครั้งนี้"}
                           </label>
                           <div className="meter-reading">
-                          <input
-                            id={room.id + key}
-                            data-row={index}
-                            data-column={key}
-                            aria-invalid={invalid}
-                            disabled={isLocked || saving}
-                            readOnly={inherited != null}
-                            type="number"
-                            min="0"
-                            max="999999999"
-                            step="0.001"
-                            inputMode="decimal"
-                            placeholder="—"
-                            value={row[key]}
-                            onChange={(e) => {
-                              setRows({
-                                ...rows,
-                                [room.id]: { ...row, [key]: e.target.value },
-                              });
-                              setDirty(new Set([...dirty, room.id]));
-                              onDirty(true);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                document
-                                  .querySelector<HTMLInputElement>(
-                                    `input[data-row="${index + 1}"][data-column="${key}"]`,
-                                  )
-                                  ?.focus();
-                              }
-                            }}
-                          />
-                          {key.endsWith("current") && (
-                            <small className="meter-usage">
-                              {(key.startsWith("water") ? wu : eu) ?? "—"} หน่วย
-                            </small>
-                          )}
+                            <input
+                              id={room.id + key}
+                              data-row={index}
+                              data-column={key}
+                              aria-invalid={invalid}
+                              disabled={!canWrite || isLocked || saving}
+                              readOnly={inherited != null}
+                              type="number"
+                              min="0"
+                              max="999999999"
+                              step="0.001"
+                              inputMode="decimal"
+                              placeholder="—"
+                              value={row[key]}
+                              onChange={(e) => {
+                                setRows({
+                                  ...rows,
+                                  [room.id]: { ...row, [key]: e.target.value },
+                                });
+                                setDirty(new Set([...dirty, room.id]));
+                                onDirty(true);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  document
+                                    .querySelector<HTMLInputElement>(
+                                      `input[data-row="${index + 1}"][data-column="${key}"]`,
+                                    )
+                                    ?.focus();
+                                }
+                              }}
+                            />
+                            {key.endsWith("current") && (
+                              <small className="meter-usage">
+                                {(key.startsWith("water") ? wu : eu) ?? "—"}{" "}
+                                หน่วย
+                              </small>
+                            )}
                           </div>
                         </td>
                       );

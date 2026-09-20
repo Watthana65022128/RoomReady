@@ -1,6 +1,7 @@
 "use server";
 import { randomBytes } from "node:crypto";
 import { owner } from "@/lib/data";
+import { requireActiveSubscription } from "@/lib/subscription";
 
 export async function propertyBillLink(propertyId: string, rotate = false) {
   if (!/^[0-9a-f-]{36}$/i.test(propertyId)) throw new Error("ไม่พบหอพัก");
@@ -12,6 +13,16 @@ export async function propertyBillLink(propertyId: string, rotate = false) {
     .eq("owner_id", user.id)
     .maybeSingle();
   if (error || !property) throw new Error("ไม่พบหอพัก");
+  if (!rotate) {
+    const { data: existing, error: readError } = await db
+      .from("property_bill_links")
+      .select("token")
+      .eq("property_id", propertyId)
+      .maybeSingle();
+    if (readError) throw new Error("โหลดลิงก์ไม่สำเร็จ");
+    if (existing) return existing.token;
+  }
+  await requireActiveSubscription(db, user.id);
   if (rotate) {
     const { data, error } = await db
       .from("property_bill_links")

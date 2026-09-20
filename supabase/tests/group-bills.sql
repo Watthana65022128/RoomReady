@@ -1,9 +1,9 @@
 begin;
 create temporary table group_bill_qa (owner_id uuid, other_owner_id uuid, property_id uuid, other_property_id uuid, invoice_id uuid);
 insert into group_bill_qa(owner_id,other_owner_id) values(gen_random_uuid(),gen_random_uuid());
-insert into auth.users(id,instance_id,aud,role,email)
-select owner_id,'00000000-0000-0000-0000-000000000000'::uuid,'authenticated','authenticated',owner_id::text||'@group-qa.invalid' from group_bill_qa
-union all select other_owner_id,'00000000-0000-0000-0000-000000000000'::uuid,'authenticated','authenticated',other_owner_id::text||'@group-qa.invalid' from group_bill_qa;
+insert into auth.users(id,instance_id,aud,role,email,created_at)
+select owner_id,'00000000-0000-0000-0000-000000000000'::uuid,'authenticated','authenticated',owner_id::text||'@group-qa.invalid',now() from group_bill_qa
+union all select other_owner_id,'00000000-0000-0000-0000-000000000000'::uuid,'authenticated','authenticated',other_owner_id::text||'@group-qa.invalid',now() from group_bill_qa;
 grant select,update on group_bill_qa to authenticated,service_role;
 select set_config('request.jwt.claim.sub',(select owner_id::text from group_bill_qa),true);
 set local role authenticated;
@@ -11,7 +11,10 @@ do $$
 declare p uuid; p2 uuid; r uuid; i uuid;
 begin
  p:=(public.owner_command('property_save','{"name":"Group QA","rent":4000,"water_method":"meter","water_rate":18,"electric_rate":7,"due_day":5,"payment_info":"QA bank","charges":[]}')->>'id')::uuid;
+ perform set_config('request.jwt.claim.sub',(select other_owner_id::text from group_bill_qa),true);
  p2:=(public.owner_command('property_save','{"name":"Other Group QA","rent":4000,"water_method":"meter","water_rate":18,"electric_rate":7,"due_day":5,"payment_info":"QA bank","charges":[]}')->>'id')::uuid;
+ insert into public.property_bill_links values(p2,repeat('b',64));
+ perform set_config('request.jwt.claim.sub',(select owner_id::text from group_bill_qa),true);
  perform public.owner_command('rooms_add',jsonb_build_object('property_id',p,'names',jsonb_build_array('201')));
  select id into r from public.rooms where property_id=p;
  perform public.owner_command('tenant_movein',jsonb_build_object('property_id',p,'room_id',r,'name','PRIVATE QA TENANT','moved_in','2026-09-01'));
@@ -21,7 +24,7 @@ begin
  select id into i from public.invoices where property_id=p;
  assert i is not null,'fixture must issue invoice';
  update group_bill_qa set property_id=p,other_property_id=p2,invoice_id=i;
- insert into public.property_bill_links values(p,repeat('a',64)),(p2,repeat('b',64));
+ insert into public.property_bill_links values(p,repeat('a',64));
  insert into public.property_bill_links values(p,repeat('c',64)) on conflict(property_id) do nothing;
  assert (select token=repeat('a',64) from public.property_bill_links where property_id=p),'repeat share must preserve link';
  update public.property_bill_links set token=repeat('d',64) where property_id=p;
@@ -30,7 +33,7 @@ end $$;
 select set_config('request.jwt.claim.sub',(select other_owner_id::text from group_bill_qa),true);
 do $$
 begin
- assert not exists(select 1 from public.property_bill_links),'other owner cannot list links';
+ assert not exists(select 1 from public.property_bill_links where property_id=(select property_id from group_bill_qa)),'other owner cannot list links';
  update public.property_bill_links set token=repeat('e',64) where property_id=(select property_id from group_bill_qa);
  assert not found,'other owner cannot rotate';
  begin
@@ -42,6 +45,7 @@ begin
  assert not has_function_privilege('authenticated','public.submit_group_slip(text,uuid,text)','execute'),'owners must not bypass gateway finalization';
 end $$;
 reset role;
+select set_config('request.jwt.claim.sub','',true);
 set local role service_role;
 do $$
 declare q record; object_path text;
