@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export default async function Dashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ property?: string; tab?: string; month?: string }>;
+  searchParams: Promise<{ property?: string; tab?: string; month?: string; step?: string; status?: string; q?: string }>;
 }) {
   const [data, context, initial] = await Promise.all([
     workspace(),

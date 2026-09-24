@@ -28,8 +28,9 @@ import { MeterGrid } from "./meters";
 import { useToast } from "./toast";
 import { useOwnerAccess } from "./owner-access";
 import { PLANS, subscriptionAccess, type Subscription } from "@/lib/plans";
+import { dashboardHref, withReturnTo, type DashboardLocation } from "@/lib/navigation";
 
-type Tab = "overview" | "billing" | "rooms" | "settings";
+type Tab = DashboardLocation["tab"];
 export function WorkspaceApp({
   data,
   initial,
@@ -37,7 +38,7 @@ export function WorkspaceApp({
 }: {
   data: Workspace;
   subscription: Subscription;
-  initial: { tab?: string; month?: string };
+  initial: { tab?: string; month?: string; step?: string; status?: string; q?: string };
 }) {
   const router = useRouter();
   const notify = useToast();
@@ -56,13 +57,28 @@ export function WorkspaceApp({
     );
   const [modal, setModal] = useState<string | null>(null),
     [selectedRoom, setRoom] = useState<Tables<"rooms"> | null>(null);
-  const [status, setStatus] = useState("all"),
-    [query, setQuery] = useState(""),
-    [step, setStep] = useState("meters"),
+  const [status, setStatus] = useState(
+      ["all", "issued", "slip_submitted", "paid", "overdue", "void"].includes(initial.status || "")
+        ? initial.status!
+        : "all",
+    ),
+    [query, setQuery] = useState(initial.q || ""),
+    [step, setStep] = useState<DashboardLocation["step"]>(
+      ["meters", "bills", "share"].includes(initial.step || "")
+        ? (initial.step as DashboardLocation["step"])
+        : "meters",
+    ),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false),
     [meterDirty, setMeterDirty] = useState(false),
     [meterEpoch, setMeterEpoch] = useState(0);
+  const dashboardUrl = dashboardHref({ tab, month, step, status, query });
+  useEffect(() => {
+    if (window.location.pathname !== "/dashboard") return;
+    if (window.location.pathname + window.location.search !== dashboardUrl) {
+      window.history.replaceState(window.history.state, "", dashboardUrl);
+    }
+  }, [dashboardUrl]);
   useEffect(() => {
     if (!meterDirty) return;
     const warn = (event: BeforeUnloadEvent) => {
@@ -214,7 +230,7 @@ export function WorkspaceApp({
             </button>
           ))}
         </nav>
-        <Link href="/subscription" className="subscription-side-link">
+        <Link href={withReturnTo("/subscription", dashboardUrl)} className="subscription-side-link">
           แพ็กเกจและสิทธิ์ใช้งาน ↗
         </Link>
         <div className="side-bottom">
@@ -278,7 +294,7 @@ export function WorkspaceApp({
                 </p>
               )}
             </div>
-            <Link href="/subscription">
+            <Link href={withReturnTo("/subscription", dashboardUrl)}>
               {access.active ? "จัดการแพ็กเกจ →" : "ขอเปิดใช้แพ็กเกจ →"}
             </Link>
           </div>
@@ -445,7 +461,7 @@ export function WorkspaceApp({
                           .map((i) => (
                             <Link
                               className="review-row"
-                              href={"/invoices/" + i.id}
+                              href={withReturnTo("/invoices/" + i.id, dashboardUrl)}
                               key={i.id}
                             >
                               <span className="room-tile">{i.room_name}</span>
@@ -653,7 +669,7 @@ export function WorkspaceApp({
                                   <td>
                                     <Link
                                       className="room-link"
-                                      href={"/invoices/" + i.id}
+                                      href={withReturnTo("/invoices/" + i.id, dashboardUrl)}
                                     >
                                       {i.room_name}
                                     </Link>
@@ -668,7 +684,7 @@ export function WorkspaceApp({
                                     <div className="actions">
                                       <Link
                                         className="small text-button"
-                                        href={"/invoices/" + i.id}
+                                        href={withReturnTo("/invoices/" + i.id, dashboardUrl)}
                                       >
                                         {i.status === "draft"
                                           ? "ตรวจ / แก้บิล"

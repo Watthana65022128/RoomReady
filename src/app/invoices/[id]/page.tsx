@@ -4,13 +4,17 @@ import { OwnerAccess } from "@/components/owner-access";
 import { paymentQrUrl } from "@/lib/payment-qr";
 import { notFound } from "next/navigation";
 import { InvoiceDetail } from "@/components/invoice-detail";
+import { safeReturnTo } from "@/lib/navigation";
 export const dynamic = "force-dynamic";
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ returnTo?: string }>;
 }) {
   const { id } = await params;
+  const { returnTo } = await searchParams;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const { db, user } = await owner();
   const { data: invoice, error } = await db
@@ -51,6 +55,7 @@ export default async function Page({
     <OwnerAccess subscription={await readSubscription(db, user.id)}>
       <InvoiceDetail
         invoice={invoice}
+        back={safeReturnTo(returnTo) || `/dashboard?tab=billing&month=${invoice.month.slice(0, 7)}&step=${invoice.status === "draft" ? "bills" : "share"}`}
         paymentQrUrl={await paymentQrUrl(db, user.id, invoice.property_id)}
         items={items.data || []}
         slips={signed}

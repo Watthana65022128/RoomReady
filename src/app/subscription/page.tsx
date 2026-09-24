@@ -3,8 +3,15 @@ import { subscriptionContext } from "@/lib/subscription";
 import { PLANS, subscriptionAccess } from "@/lib/plans";
 import { dateLabel } from "@/lib/domain";
 import { RequestPlan } from "@/components/subscription-forms";
+import { safeReturnTo, withReturnTo } from "@/lib/navigation";
 export const dynamic = "force-dynamic";
-export default async function SubscriptionPage() {
+export default async function SubscriptionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string }>;
+}) {
+  const { returnTo } = await searchParams;
+  const back = safeReturnTo(returnTo, true) || "/dashboard";
   const { db, user, subscription: sub } = await subscriptionContext();
   const access = subscriptionAccess(sub);
   const [request, admin] = await Promise.all([
@@ -21,9 +28,9 @@ export default async function SubscriptionPage() {
   return (
     <main className="subscription-page">
       <nav className="subscription-nav">
-        <Link href="/dashboard">← กลับหน้าจัดการ</Link>
+        <Link href={back}>← กลับหน้าก่อนหน้า</Link>
         {admin.data && (
-          <Link href="/admin/subscriptions">จัดการสิทธิ์ผู้ใช้ ↗</Link>
+          <Link href={withReturnTo("/admin/subscriptions", back)}>จัดการสิทธิ์ผู้ใช้ ↗</Link>
         )}
       </nav>
       <span className="eyebrow">ROOMREADY / MEMBERSHIP</span>

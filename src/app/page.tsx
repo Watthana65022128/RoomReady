@@ -34,13 +34,13 @@ const features = [
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ property?: string; tab?: string; month?: string }>;
+  searchParams: Promise<{ property?: string; tab?: string; month?: string; step?: string; status?: string; q?: string }>;
 }) {
   const params = await searchParams;
   // Keep previously shared workspace bookmarks useful.
-  if (params.property || params.tab || params.month) {
+  if (params.property || params.tab || params.month || params.step || params.status || params.q) {
     const query = new URLSearchParams();
-    for (const key of ["property", "tab", "month"] as const)
+    for (const key of ["property", "tab", "month", "step", "status", "q"] as const)
       if (params[key]) query.set(key, params[key]);
     redirect("/dashboard?" + query.toString());
   }

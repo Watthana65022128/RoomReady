@@ -8,14 +8,17 @@ import { PaymentQr } from "./payment-qr";
 import type { Json, Tables } from "@/types/database";
 import { money, dateLabel, monthLabel, lineTotal } from "@/lib/domain";
 import { Badge, ShareBill, Modal, CommandForm, Field } from "./ui";
+import { withReturnTo } from "@/lib/navigation";
 export function InvoiceDetail({
   invoice: i,
+  back,
   items,
   slips,
   events,
   paymentQrUrl,
 }: {
   invoice: Tables<"invoices">;
+  back: string;
   items: Tables<"invoice_items">[];
   slips: { id: string; created_at: string; url: string }[];
   events: Tables<"payment_events">[];
@@ -25,11 +28,6 @@ export function InvoiceDetail({
   const router = useRouter(),
     [modal, setModal] = useState(""),
     [editItems, setItems] = useState(items.map((x) => ({ ...x })));
-  const back =
-    "/dashboard?tab=billing&property=" +
-    i.property_id +
-    "&month=" +
-    i.month.slice(0, 7);
   const done = () => {
     setModal("");
     router.refresh();
@@ -37,13 +35,13 @@ export function InvoiceDetail({
   return (
     <main className="detail-page">
       <header className="detail-nav">
-        <Link href={back}>← กลับรอบบิล</Link>
+        <Link href={back}>← กลับหน้าก่อนหน้า</Link>
         <span className="brand">RoomReady</span>
       </header>
       {!canWrite && (
         <p className="notice">
           สิทธิ์หมดอายุแล้ว ดูบิลเดิมได้{" "}
-          <Link href="/subscription">ขอเปิดใช้แพ็กเกจ →</Link>
+          <Link href={withReturnTo("/subscription", withReturnTo("/invoices/" + i.id, back))}>ขอเปิดใช้แพ็กเกจ →</Link>
         </p>
       )}
       <div className="page-heading">

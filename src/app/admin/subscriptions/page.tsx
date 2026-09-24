@@ -9,6 +9,7 @@ import {
   type Plan,
 } from "@/lib/plans";
 import { dateLabel } from "@/lib/domain";
+import { safeReturnTo, withReturnTo } from "@/lib/navigation";
 export const dynamic = "force-dynamic";
 type Entry = Subscription & {
   email: string;
@@ -27,7 +28,7 @@ type Entry = Subscription & {
 export default async function AdminSubscriptions({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; returnTo?: string }>;
 }) {
   const { db } = await owner();
   const { data: admin, error: adminError } = await db.rpc(
@@ -37,6 +38,11 @@ export default async function AdminSubscriptions({
   if (!admin) notFound();
   const params = await searchParams,
     search = (params.q || "").slice(0, 254);
+  const returnTo = safeReturnTo(params.returnTo, true) || "/dashboard";
+  const pageHref = (nextPage: number) => {
+    const query = new URLSearchParams({ q: search, page: String(nextPage), returnTo });
+    return `?${query.toString()}`;
+  };
   const page = Math.max(
     0,
     Math.min(100000, Math.floor(Number(params.page) || 0)),
@@ -49,13 +55,14 @@ export default async function AdminSubscriptions({
   const entries = data as unknown as Entry[];
   return (
     <main className="subscription-page">
-      <Link href="/subscription">← กลับแพ็กเกจของฉัน</Link>
+      <Link href={withReturnTo("/subscription", returnTo)}>← กลับแพ็กเกจของฉัน</Link>
       <h1>จัดการสิทธิ์ผู้ใช้</h1>
       <p>
         ยืนยันหลังตรวจสอบการรับชำระเงินนอกระบบแล้วเท่านั้น
         ทุกครั้งบันทึกผู้ยืนยันและวันหมดอายุ
       </p>
       <form className="admin-search">
+        <input type="hidden" name="returnTo" value={returnTo} />
         <label>
           ค้นหาอีเมลหรือรหัสเจ้าของ
           <input name="q" defaultValue={search} maxLength={254} />
@@ -116,12 +123,12 @@ export default async function AdminSubscriptions({
       {!entries.length && <p>ไม่พบบัญชีที่ตรงกับการค้นหา</p>}
       <nav className="subscription-nav" aria-label="หน้ารายการ">
         {page > 0 && (
-          <Link href={`?q=${encodeURIComponent(search)}&page=${page - 1}`}>
+          <Link href={pageHref(page - 1)}>
             ← ก่อนหน้า
           </Link>
         )}
         {entries.length === 30 && (
-          <Link href={`?q=${encodeURIComponent(search)}&page=${page + 1}`}>
+          <Link href={pageHref(page + 1)}>
             ถัดไป →
           </Link>
         )}
