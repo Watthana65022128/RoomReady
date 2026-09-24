@@ -425,15 +425,6 @@ export default async function Home({
           </div>
         </section>
       </main>
-      <footer className="landing-footer landing-container">
-        <Link href="/" className="brand">
-          <span className="brand-icon">R</span>RoomReady
-        </Link>
-        <span>คุณดูแลหอ เราช่วยดูแลงาน</span>
-        <Link href={user ? "/dashboard" : "/login"}>
-          {user ? "ไปหน้าจัดการ" : "เข้าสู่ระบบเจ้าของหอ"} ↗
-        </Link>
-      </footer>
     </div>
   );
 }
