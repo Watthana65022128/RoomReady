@@ -2,7 +2,6 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "./toast";
-import { RoomPaymentNotice } from "./room-payment-notice";
 export function SlipUpload({
   token,
   submitted,
@@ -77,7 +76,6 @@ export function SlipUpload({
       }}
     >
       {roomName && <h2>ส่งสลิปห้อง {roomName}</h2>}
-      {roomName && <RoomPaymentNotice />}
       <h2>{submitted ? "ได้รับสลิปแล้ว รอตรวจสอบ" : "แจ้งชำระเงิน"}</h2>
       <p className="muted">
         {submitted

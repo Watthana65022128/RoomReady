@@ -30,6 +30,7 @@ import { useOwnerAccess } from "./owner-access";
 import { PLANS, subscriptionAccess, type Subscription } from "@/lib/plans";
 import { BrandLogo } from "./brand-logo";
 import { dashboardHref, withReturnTo, type DashboardLocation } from "@/lib/navigation";
+import { groupRoomsByFloor } from "@/lib/room-floors";
 
 type Tab = DashboardLocation["tab"];
 export function WorkspaceApp({
@@ -188,6 +189,18 @@ export function WorkspaceApp({
     }
   }
   const occupiedCount = roomList.filter((r) => occupied.has(r.id)).length;
+  const visibleRooms = roomList
+    .map((room) => {
+      const tenancy = data.tenancies.find(
+        (item) => item.room_id === room.id && !item.moved_out,
+      );
+      const tenant = data.tenants.find((item) => item.id === tenancy?.tenant_id);
+      return { ...room, room, tenancy, tenant };
+    })
+    .filter(({ room, tenant }) =>
+      (room.name + " " + (tenant?.name || "")).includes(query),
+    );
+  const roomFloors = groupRoomsByFloor(visibleRooms);
   const titles = {
     overview: "ภาพรวม",
     billing: "รอบบิลประจำเดือน",
@@ -752,49 +765,56 @@ export function WorkspaceApp({
                       แล้วเพิ่มผู้เช่าแต่ละห้อง
                     </Empty>
                   ) : (
-                    <div className="room-grid">
-                      {roomList.map((r) => {
-                        const tenancy = data.tenancies.find(
-                            (t) => t.room_id === r.id && !t.moved_out,
-                          ),
-                          tenant = data.tenants.find(
-                            (t) => t.id === tenancy?.tenant_id,
-                          );
-                        if (
-                          !(r.name + " " + (tenant?.name || "")).includes(query)
-                        )
-                          return null;
-                        return (
-                          <button
-                            className={
-                              "room-card " + (tenancy ? "occupied" : "")
-                            }
-                            key={r.id}
-                            onClick={() => {
-                              setRoom(r);
-                              setModal("room");
-                            }}
-                          >
-                            <div>
-                              <strong>{r.name}</strong>
-                              <span
+                    <div className="room-floors">
+                      {roomFloors.map(({ floor, rooms }) => (
+                        <section
+                          className="room-floor"
+                          key={floor}
+                          aria-label={floor ? `ชั้น ${floor}` : "ไม่ระบุชั้น"}
+                        >
+                          <div className="room-floor-heading">
+                            <h3>{floor ? `ชั้น ${floor}` : "ไม่ระบุชั้น"}</h3>
+                            <span>{rooms.length} ห้อง</span>
+                          </div>
+                          <div className="room-grid">
+                            {rooms.map(({ room: r, tenancy, tenant }) => (
+                              <button
                                 className={
-                                  "badge " + (tenancy ? "occupied" : "vacant")
+                                  "room-card " + (tenancy ? "occupied" : "")
                                 }
+                                key={r.id}
+                                onClick={() => {
+                                  setRoom(r);
+                                  setModal("room");
+                                }}
                               >
-                                {tenancy ? "มีผู้เช่า" : "ห้องว่าง"}
-                              </span>
-                            </div>
-                            <p>{tenant?.name || "พร้อมรับผู้เช่า"}</p>
-                            <footer>
-                              <span>ชั้น {r.floor || "—"}</span>
-                              <span>
-                                ฿{money(r.rent ?? property.rent)} / เดือน
-                              </span>
-                            </footer>
-                          </button>
-                        );
-                      })}
+                                <div>
+                                  <strong>{r.name}</strong>
+                                  <span
+                                    className={
+                                      "badge " + (tenancy ? "occupied" : "vacant")
+                                    }
+                                  >
+                                    {tenancy ? "มีผู้เช่า" : "ห้องว่าง"}
+                                  </span>
+                                </div>
+                                <p>{tenant?.name || "พร้อมรับผู้เช่า"}</p>
+                                <footer>
+                                  <span>ชั้น {r.floor || "—"}</span>
+                                  <span>
+                                    ฿{money(r.rent ?? property.rent)} / เดือน
+                                  </span>
+                                </footer>
+                              </button>
+                            ))}
+                          </div>
+                        </section>
+                      ))}
+                      {roomFloors.length === 0 && (
+                        <p className="room-search-empty" role="status">
+                          ไม่พบห้องที่ตรงกับคำค้นหา
+                        </p>
+                      )}
                     </div>
                   )}
                 </section>

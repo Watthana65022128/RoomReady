@@ -3,7 +3,6 @@ import { money, dateLabel, monthLabel } from "@/lib/domain";
 import { Badge } from "./ui";
 import { SlipUpload } from "./slip-upload";
 import { PaymentQr } from "./payment-qr";
-import { RoomPaymentNotice } from "./room-payment-notice";
 import { BrandLogo } from "./brand-logo";
 export function TenantBill({
   bill,
@@ -41,7 +40,6 @@ export function TenantBill({
             <Badge invoice={bill} />
           )}
         </header>
-        {group && <RoomPaymentNotice />}
         <div className="invoice-total">
           <span>ยอดชำระทั้งหมด</span>
           <strong>฿{money(bill.total)}</strong>
@@ -85,10 +83,12 @@ export function TenantBill({
         )}
       </article>
       <p className="tenant-footer">
-        {group
-          ? "กรุณาชำระและส่งสลิปเฉพาะห้องของตนเอง"
-          : "ลิงก์นี้เป็นข้อมูลส่วนตัวของคุณ กรุณาไม่ส่งต่อให้ผู้อื่น"}
-        <br />
+        {!group && (
+          <>
+            ลิงก์นี้เป็นข้อมูลส่วนตัวของคุณ กรุณาไม่ส่งต่อให้ผู้อื่น
+            <br />
+          </>
+        )}
         หากยอดไม่ถูกต้อง โปรดติดต่อเจ้าของหอพัก
       </p>
     </main>

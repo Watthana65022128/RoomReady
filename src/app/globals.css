@@ -973,6 +973,30 @@ tbody tr:hover {
   color: #8d9887;
   font-size: 12px;
 }
+.room-floor + .room-floor {
+  border-top: 1px solid #dce5d9;
+}
+.room-floor-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px 0;
+}
+.room-floor-heading h3 {
+  color: var(--green);
+  font-size: 16px;
+  font-weight: 600;
+}
+.room-floor-heading span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.room-search-empty {
+  padding: 28px 24px;
+  color: var(--muted);
+  font-size: 14px;
+}
 .room-grid {
   padding: 24px;
   display: grid;
@@ -1717,6 +1741,9 @@ progress {
   .room-grid {
     padding: 15px;
     gap: 10px;
+  }
+  .room-floor-heading {
+    padding: 18px 15px 0;
   }
   .room-card {
     padding: 14px;
