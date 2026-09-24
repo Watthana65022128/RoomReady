@@ -9,6 +9,7 @@ import type { Json, Tables } from "@/types/database";
 import { money, dateLabel, monthLabel, lineTotal } from "@/lib/domain";
 import { Badge, ShareBill, Modal, CommandForm, Field } from "./ui";
 import { withReturnTo } from "@/lib/navigation";
+import { BrandLogo } from "./brand-logo";
 export function InvoiceDetail({
   invoice: i,
   back,
@@ -36,7 +37,7 @@ export function InvoiceDetail({
     <main className="detail-page">
       <header className="detail-nav">
         <Link href={back}>← กลับหน้าก่อนหน้า</Link>
-        <span className="brand">RoomReady</span>
+        <span className="brand"><BrandLogo /></span>
       </header>
       {!canWrite && (
         <p className="notice">

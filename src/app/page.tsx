@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PLANS } from "@/lib/plans";
 import "./landing.css";
+import { BrandLogo } from "@/components/brand-logo";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "RoomReady · งานหอเบาลง เวลาชีวิตมากขึ้น",
@@ -56,7 +57,7 @@ export default async function Home({
       </a>
       <header className="landing-header">
         <Link className="brand" href="/">
-          <span className="brand-icon">R</span>RoomReady
+          <BrandLogo />
         </Link>
         <nav aria-label="เมนูหลัก">
           <a href="#features">ฟีเจอร์</a>

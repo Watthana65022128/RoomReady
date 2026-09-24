@@ -461,17 +461,11 @@ fieldset:disabled {
   color: #88978e;
   margin-top: 4px;
 }
-.brand-icon {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width: 42px;
-  height: 42px;
-  background: var(--green);
-  color: var(--lime);
-  font-size: 27px;
-  font-weight: 700;
-  border-radius: 11px;
+.brand-logo {
+  display: block;
+  width: 180px;
+  max-width: 100%;
+  height: auto;
 }
 .sidebar .brand {
   padding-left: 9px;
@@ -1132,6 +1126,9 @@ dialog .stack > button.primary {
   color: #6c8464;
   font-size: 14px;
 }
+.detail-nav .brand-logo {
+  width: 160px;
+}
 .detail-grid {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
@@ -1246,10 +1243,8 @@ dialog .stack > button.primary {
   font-weight: 650;
   margin: 10px 0 25px;
 }
-.tenant-brand .brand-icon {
-  width: 33px;
-  height: 33px;
-  font-size: 22px;
+.tenant-brand .brand-logo {
+  width: 175px;
 }
 .tenant-bill > header {
   padding: 28px;
@@ -1336,11 +1331,10 @@ progress {
   gap: 65px;
 }
 .auth-story .brand {
-  color: #fff;
-}
-.auth-story .brand-icon {
-  background: #d0ea91;
-  color: #284b32;
+  width: fit-content;
+  padding: 2px 10px;
+  background: #fff;
+  border-radius: 12px;
 }
 .brand-en {
   font-size: 10px;
@@ -1431,6 +1425,9 @@ progress {
   gap: 20px;
   text-align: center;
   padding: 30px;
+}
+.loading .brand-logo {
+  width: 190px;
 }
 @media (min-width: 1600px) {
   .stats {

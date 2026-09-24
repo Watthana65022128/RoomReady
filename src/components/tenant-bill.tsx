@@ -4,6 +4,7 @@ import { Badge } from "./ui";
 import { SlipUpload } from "./slip-upload";
 import { PaymentQr } from "./payment-qr";
 import { RoomPaymentNotice } from "./room-payment-notice";
+import { BrandLogo } from "./brand-logo";
 export function TenantBill({
   bill,
   token,
@@ -18,8 +19,7 @@ export function TenantBill({
   return (
     <main className="tenant-page">
       <div className="tenant-brand">
-        <span className="brand-icon">R</span>
-        <span>RoomReady</span>
+        <BrandLogo />
       </div>
       <article className="panel tenant-bill">
         <header>

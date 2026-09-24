@@ -51,6 +51,9 @@
   font-size: 24px;
   letter-spacing: -0.8px;
 }
+.landing-header .brand-logo {
+  width: 180px;
+}
 .landing-header nav a:hover,
 .landing-text-link:hover {
   text-decoration: underline;
@@ -749,6 +752,9 @@
   .landing-header .brand {
     font-size: 20px;
   }
+  .landing-header .brand-logo {
+    width: 160px;
+  }
   .landing-header nav {
     order: 3;
     width: 100%;
@@ -883,6 +889,9 @@
 @media (max-width: 370px) {
   .landing-header .brand {
     font-size: 18px;
+  }
+  .landing-header .brand-logo {
+    width: 140px;
   }
   .landing-account {
     gap: 8px;

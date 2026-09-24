@@ -28,6 +28,7 @@ import { MeterGrid } from "./meters";
 import { useToast } from "./toast";
 import { useOwnerAccess } from "./owner-access";
 import { PLANS, subscriptionAccess, type Subscription } from "@/lib/plans";
+import { BrandLogo } from "./brand-logo";
 import { dashboardHref, withReturnTo, type DashboardLocation } from "@/lib/navigation";
 
 type Tab = DashboardLocation["tab"];
@@ -197,8 +198,7 @@ export function WorkspaceApp({
     <div className="app-shell">
       <aside className="sidebar">
         <Link href="/" className="brand">
-          <span className="brand-icon">R</span>
-          <span>RoomReady</span>
+          <BrandLogo />
         </Link>
         <div className="side-caption">พื้นที่ทำงาน</div>
         <nav>

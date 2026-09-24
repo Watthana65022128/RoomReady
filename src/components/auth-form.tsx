@@ -8,6 +8,7 @@ import {
 import Link from "next/link";
 import { authAction } from "@/app/actions";
 import { useToast } from "./toast";
+import { BrandLogo } from "./brand-logo";
 import {
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
@@ -45,7 +46,7 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
     <main className="auth-page">
       <section className="auth-story">
         <Link href="/" className="brand">
-          <span className="brand-icon">R</span>RoomReady
+          <BrandLogo />
         </Link>
         <div>
           <span className="eyebrow">ทุกห้อง อยู่ในมือคุณ</span>

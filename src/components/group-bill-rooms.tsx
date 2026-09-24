@@ -4,6 +4,7 @@ import Link from "next/link";
 import { monthLabel } from "@/lib/domain";
 import type { GroupBillListing } from "@/lib/domain";
 import { RoomPaymentNotice } from "./room-payment-notice";
+import { BrandLogo } from "./brand-logo";
 
 export function GroupBillRooms({
   token,
@@ -35,8 +36,7 @@ export function GroupBillRooms({
   return (
     <main className="tenant-page group-bills-page">
       <div className="tenant-brand">
-        <span className="brand-icon">R</span>
-        <span>RoomReady</span>
+        <BrandLogo />
       </div>
       <section className="panel group-bills-panel">
         <header>
