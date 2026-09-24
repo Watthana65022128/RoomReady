@@ -574,11 +574,6 @@ fieldset:disabled {
   align-items: center;
   gap: 14px;
 }
-.topbar-right select {
-  width: 170px;
-  font-size: 13px;
-  padding: 7px 10px;
-}
 .date-today {
   font-size: 12px;
   color: #8b958e;
@@ -1580,10 +1575,6 @@ progress {
     gap: 8px;
     width: 100%;
     justify-content: space-between;
-  }
-  .topbar-right select {
-    flex: 1;
-    max-width: 220px;
   }
   .workspace {
     padding: 25px 16px 18px;

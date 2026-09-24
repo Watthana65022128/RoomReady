@@ -61,9 +61,9 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
           </p>
         </div>
         <div className="story-ledger">
-          <span>01 / กรอกมิเตอร์</span>
-          <span>02 / ออกบิล</span>
-          <span>03 / รับชำระ</span>
+          <span>1 / กรอกมิเตอร์</span>
+          <span>2 / ออกบิล</span>
+          <span>3 / รับชำระ</span>
         </div>
       </section>
       <section className="auth-panel">

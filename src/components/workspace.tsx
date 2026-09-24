@@ -37,7 +37,7 @@ export function WorkspaceApp({
 }: {
   data: Workspace;
   subscription: Subscription;
-  initial: { property?: string; tab?: string; month?: string };
+  initial: { tab?: string; month?: string };
 }) {
   const router = useRouter();
   const notify = useToast();
@@ -48,10 +48,6 @@ export function WorkspaceApp({
       ["overview", "billing", "rooms", "settings"].includes(initial.tab || "")
         ? (initial.tab as Tab)
         : "overview",
-    ),
-    [propertyId, setProperty] = useState(
-      initial.property ||
-        (data.properties.length === 1 ? data.properties[0].id : ""),
     ),
     [month, setMonth] = useState(
       /^(20\d{2}|2100)-(0[1-9]|1[0-2])$/.test(initial.month || "")
@@ -88,18 +84,18 @@ export function WorkspaceApp({
     setMeterDirty(false);
     return true;
   }
-  const property = data.properties.find((p) => p.id === propertyId);
+  const property = data.properties[0];
   const roomList = data.rooms
-    .filter((r) => !propertyId || r.property_id === propertyId)
+    .filter((r) => r.property_id === property?.id)
     .sort((a, b) => a.name.localeCompare(b.name, "th", { numeric: true }));
   const invoices = data.invoices.filter(
     (i) =>
-      (!propertyId || i.property_id === propertyId) &&
+      i.property_id === property?.id &&
       i.month === month + "-01",
   );
   const outstanding = data.invoices.filter(
     (i) =>
-      (!propertyId || i.property_id === propertyId) &&
+      i.property_id === property?.id &&
       !["draft", "void", "paid"].includes(i.status),
   );
   const occupied = new Set(
@@ -107,7 +103,7 @@ export function WorkspaceApp({
   );
   const paid = data.invoices.filter(
     (i) =>
-      (!propertyId || i.property_id === propertyId) &&
+      i.property_id === property?.id &&
       i.status === "paid" &&
       i.paid_at &&
       new Intl.DateTimeFormat("en-CA", {
@@ -145,8 +141,6 @@ export function WorkspaceApp({
     if (!canLeave()) return;
     setTab(next);
     setQuery("");
-    if (next !== "overview" && !propertyId && data.properties[0])
-      setProperty(data.properties[0].id);
   }
   async function batch(op: string) {
     if (!property) return;
@@ -245,31 +239,6 @@ export function WorkspaceApp({
           </span>
           <div className="topbar-right">
             <span className="date-today">{dateLabel(today())}</span>
-            <label className="sr-only" htmlFor="property">
-              เลือกหอพัก
-            </label>
-            <select
-              id="property"
-              value={propertyId}
-              onChange={(e) => {
-                if (canLeave()) setProperty(e.target.value);
-              }}
-            >
-              <option value="">ทุกหอพัก</option>
-              {data.properties.map((p) => (
-                <option value={p.id} key={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-            <button
-              className="small secondary"
-              disabled={!access.active || data.properties.length >= 1}
-              title="เจ้าของ 1 บัญชีมีได้ 1 หอพัก"
-              onClick={() => setModal("new-property")}
-            >
-              + เพิ่มหอพัก
-            </button>
             <div className="mobile-logout">
               <button
                 type="button"
@@ -316,7 +285,7 @@ export function WorkspaceApp({
           <div className="page-heading">
             <div>
               <span className="eyebrow">
-                {property?.name || "ทุกหอพักของคุณ"}
+                {property?.name || "หอพักของคุณ"}
               </span>
               <h1>{titles[tab]}</h1>
               <p className="muted">
@@ -495,12 +464,6 @@ export function WorkspaceApp({
                     <section className="panel">
                       <div className="panel-head">
                         <h2>หอพักของคุณ</h2>
-                        <button
-                          className="text-button"
-                          onClick={() => setModal("new-property")}
-                        >
-                          + เพิ่ม
-                        </button>
                       </div>
                       {data.properties.map((p) => {
                         const rs = data.rooms.filter(
@@ -511,10 +474,7 @@ export function WorkspaceApp({
                           <button
                             className="property-row"
                             key={p.id}
-                            onClick={() => {
-                              setProperty(p.id);
-                              setTab("rooms");
-                            }}
+                            onClick={() => navigate("rooms")}
                           >
                             <span className="property-symbol">▦</span>
                             <span>
@@ -533,11 +493,6 @@ export function WorkspaceApp({
                   </div>
                 </>
               )}
-              {tab !== "overview" && !property ? (
-                <Empty title="เลือกหอพักที่จะจัดการ">
-                  เลือกหอพักจากเมนูด้านบน เพื่อเริ่มทำงาน
-                </Empty>
-              ) : null}
               {tab === "billing" && property && (
                 <>
                   <div className="workflow-tabs">
@@ -547,7 +502,7 @@ export function WorkspaceApp({
                         if (canLeave()) setStep("meters");
                       }}
                     >
-                      <span>01</span> กรอกมิเตอร์
+                      <span>1</span> กรอกมิเตอร์
                     </button>
                     <button
                       className={step === "bills" ? "active" : ""}
@@ -555,7 +510,7 @@ export function WorkspaceApp({
                         if (canLeave()) setStep("bills");
                       }}
                     >
-                      <span>02</span> ตรวจและออกบิล{" "}
+                      <span>2</span> ตรวจและออกบิล{" "}
                       <b>
                         {invoices.filter((i) => i.status === "draft").length}
                       </b>
@@ -569,7 +524,7 @@ export function WorkspaceApp({
                         }
                       }}
                     >
-                      <span>03</span> แชร์และรับชำระ
+                      <span>3</span> แชร์และรับชำระ
                     </button>
                   </div>
                   {message && (

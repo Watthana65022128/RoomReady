@@ -13,19 +13,19 @@ export const metadata: Metadata = {
 };
 const features = [
   [
-    "01",
+    "1",
     "ห้องและผู้เช่า",
     "รู้ว่าห้องไหนว่าง ใครพักอยู่",
     "รวมข้อมูลห้อง อัตราค่าเช่า และประวัติการเข้าพัก ไม่ต้องไล่เปิดสมุดหลายเล่ม",
   ],
   [
-    "02",
+    "2",
     "มิเตอร์และค่าใช้จ่าย",
     "กรอกเลขมิเตอร์ แล้วไปต่อได้เลย",
     "บันทึกค่าน้ำค่าไฟทั้งหอ ตั้งอัตราเริ่มต้นและค่าใช้จ่ายเพิ่มเติม เพื่อใช้ต่อทุกรอบเดือน",
   ],
   [
-    "03",
+    "3",
     "บิลและการรับชำระ",
     "ส่งบิลง่าย ตามยอดได้ครบ",
     "ตรวจบิลร่างก่อนออกจริง แชร์ลิงก์บิลให้ผู้เช่า รับสลิปและยืนยันการชำระในระบบ",
@@ -202,7 +202,7 @@ export default async function Home({
         <section className="landing-container landing-section problem-section">
           <div>
             <span className="section-index">
-              01 / งานเดิมที่ไม่ควรกินเวลาคุณ
+              1 / งานเดิมที่ไม่ควรกินเวลาคุณ
             </span>
             <h2>
               สิ้นเดือนไม่จำเป็น
@@ -240,7 +240,7 @@ export default async function Home({
             <div className="section-heading">
               <div>
                 <span className="section-index">
-                  02 / เครื่องมือที่ได้ใช้จริง
+                  2 / เครื่องมือที่ได้ใช้จริง
                 </span>
                 <h2>
                   ครบงานหอ
@@ -299,7 +299,7 @@ export default async function Home({
           <div className="section-heading">
             <div>
               <span className="section-index">
-                03 / ราคาเรียบง่าย โตไปกับหอคุณ
+                3 / ราคาเรียบง่าย โตไปกับหอคุณ
               </span>
               <h2>
                 เลือกตามจำนวนห้อง
@@ -370,7 +370,7 @@ export default async function Home({
           className="landing-container landing-section faq-section"
         >
           <div>
-            <span className="section-index">04 / ก่อนเริ่มใช้งาน</span>
+            <span className="section-index">4 / ก่อนเริ่มใช้งาน</span>
             <h2>
               เรื่องที่คุณ
               <br />
