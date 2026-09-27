@@ -25,7 +25,7 @@ export default async function Page({
     .maybeSingle();
   if (error) throw new Error("โหลดบิลไม่สำเร็จ");
   if (!invoice) notFound();
-  const [items, slips, events] = await Promise.all([
+  const [items, slips, events, subscription, qrUrl] = await Promise.all([
     db.from("invoice_items").select("*").eq("invoice_id", id).order("position"),
     db
       .from("payment_submissions")
@@ -39,6 +39,8 @@ export default async function Page({
       .eq("invoice_id", id)
       .order("created_at", { ascending: false })
       .limit(100),
+    readSubscription(db, user.id),
+    paymentQrUrl(db, user.id, invoice.property_id),
   ]);
   if (items.error || slips.error || events.error)
     throw new Error("โหลดรายละเอียดบิลไม่สำเร็จ");
@@ -52,11 +54,11 @@ export default async function Page({
     }),
   );
   return (
-    <OwnerAccess subscription={await readSubscription(db, user.id)}>
+    <OwnerAccess subscription={subscription}>
       <InvoiceDetail
         invoice={invoice}
         back={safeReturnTo(returnTo) || `/dashboard?tab=billing&month=${invoice.month.slice(0, 7)}&step=${invoice.status === "draft" ? "bills" : "share"}`}
-        paymentQrUrl={await paymentQrUrl(db, user.id, invoice.property_id)}
+        paymentQrUrl={qrUrl}
         items={items.data || []}
         slips={signed}
         events={events.data || []}
