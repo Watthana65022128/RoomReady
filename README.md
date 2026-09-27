@@ -38,7 +38,7 @@ In Supabase Auth URL Configuration, set the final Site URL and allow `<APP_URL>/
 
 Public bill reads and uploads run through the deployed **bill-gateway** Edge Function. It uses Supabase's injected `SUPABASE_SECRET_KEYS` server environment (with legacy service-role fallback). The Next.js server forwards the random bill token and upload; no admin key is put in Next.js client code or copied to the workstation.
 
-The frontend has not been deployed to a public host. Use a Node-compatible Next.js host with the variables above. Localhost bill links are suitable for local tests; public LINE links require that deployment origin.
+The frontend is deployed on Vercel at https://roomready-navy.vercel.app from the `RoomReady` GitHub repository. Production uses the variables above, and Supabase Auth Site URL and callback allow list point to this origin. Localhost bill links are suitable for local tests; public LINE links use the deployment origin.
 
 ## Database and access model
 

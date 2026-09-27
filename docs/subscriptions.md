@@ -44,7 +44,7 @@ Supabase advisors reported no new RLS or function issues. The existing project-l
 
 ## Deployment and rollback
 The 60-day trial change is in `20260927132440_extend_trial_to_60_days.sql` and has been applied to the configured Supabase project. It extended the two existing accounts still on the original 30-day trial, changed the default, and updated the signup trigger. Verify frontend copy before releasing it.
-Run the SQL suite before rollout. The original subscription migration was applied to the configured Supabase project; frontend hosting is still local unless separately deployed. Public homepage is indexable; authenticated and bill pages retain noindex from the root layout.
+The original subscription migration was applied to the configured Supabase project. The frontend is deployed at https://roomready-navy.vercel.app. Public homepage is indexable; authenticated and bill pages retain noindex from the root layout.
 Rollback the frontend and quota feature together. Keep subscription/request/event records for audit; do not delete them to roll back. Restore prior mutation guards/policies using a reviewed forward migration if reverting entitlements. Removing enforcement while keeping new pricing visible would misrepresent the product.
 The user requested deletion of all existing test data; that cleanup is operational, separate from the migration, and is not replayed on future deployments.
 
