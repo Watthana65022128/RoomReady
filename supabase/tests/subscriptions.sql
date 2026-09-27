@@ -15,7 +15,7 @@ do $$ declare pid uuid; rid uuid; r uuid; rec public.owner_subscriptions; begin
  assert not public.is_subscription_admin(),'user metadata escalated privileges';
  assert (select count(*) from public.owner_subscriptions)=1,'RLS leaks subscriptions';
  select * into rec from public.owner_subscriptions;
- assert rec.trial_ends_at-rec.trial_started_at=interval '30 days','trial length';
+ assert rec.trial_ends_at-rec.trial_started_at=interval '60 days','trial length';
  begin update public.owner_subscriptions set plan='pro'; raise exception 'FAIL direct plan write'; exception when insufficient_privilege then null; end;
  begin perform public.subscription_admin('',0); raise exception 'FAIL owner admin directory'; exception when insufficient_privilege then null; end;
  begin perform public.approve_subscription(gen_random_uuid(),'pro'); raise exception 'FAIL owner approval'; exception when insufficient_privilege then null; end;

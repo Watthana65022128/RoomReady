@@ -72,7 +72,7 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
           <h2>{title}</h2>
           <p className="muted">
             {signup
-              ? "ทดลองฟรี 30 วัน · 1 หอพัก · ไม่เกิน 30 ห้อง · ไม่ต้องผูกบัตร"
+              ? "ทดลองฟรี 60 วัน · 1 หอพัก · ไม่เกิน 30 ห้อง · ไม่ต้องผูกบัตร"
               : "จัดการหอพักของคุณได้จากทุกอุปกรณ์"}
           </p>
           <form action={action} className="stack">

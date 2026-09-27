@@ -3,7 +3,7 @@
 Implemented 2026-09-20. Landing page at /, workspace at /dashboard, owner plan requests at /subscription, admin approval at /admin/subscriptions. Old /?tab=... workspace bookmarks redirect to /dashboard with their query parameters.
 
 ## Entitlements
-- One owner account can create one property. Trial begins at signup: 30 days, 30 rooms.
+- One owner account can create one property. Trial begins at signup: 60 days, 30 rooms.
 - Starter: 99 THB/month, 30 rooms. Standard: 199 THB/month, 100 rooms. Pro: 299 THB/month, 200 rooms. Every plan includes the same features.
 - Rooms count regardless of occupancy. Counters are updated atomically by PostgreSQL triggers, including batch inserts/deletes; failed transactions roll back both data and counters.
 - Existing excess data is preserved by migrations and downgrades, but cannot be expanded above the current account quota.
@@ -43,10 +43,11 @@ Browser/API QA covered landing at desktop/390px/320px, FAQ, signup and login red
 Supabase advisors reported no new RLS or function issues. The existing project-level [leaked-password protection setting](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) remains disabled; this change did not modify Auth configuration.
 
 ## Deployment and rollback
-Deploy the migration before the frontend; run the SQL suite before rollout. The configured Supabase migration has been applied; frontend hosting is still local unless separately deployed. Public homepage is indexable; authenticated and bill pages retain noindex from the root layout.
+The 60-day trial change is in `20260927132440_extend_trial_to_60_days.sql` and has been applied to the configured Supabase project. It extended the two existing accounts still on the original 30-day trial, changed the default, and updated the signup trigger. Verify frontend copy before releasing it.
+Run the SQL suite before rollout. The original subscription migration was applied to the configured Supabase project; frontend hosting is still local unless separately deployed. Public homepage is indexable; authenticated and bill pages retain noindex from the root layout.
 Rollback the frontend and quota feature together. Keep subscription/request/event records for audit; do not delete them to roll back. Restore prior mutation guards/policies using a reviewed forward migration if reverting entitlements. Removing enforcement while keeping new pricing visible would misrepresent the product.
 The user requested deletion of all existing test data; that cleanup is operational, separate from the migration, and is not replayed on future deployments.
 
 ## Completed test-data reset
-On 2026-09-20, the user explicitly requested deletion of all existing test data and approved a 10-minute, four-object Storage cleanup capability. Removed the four test objects through the Storage API, immediately dropped both temporary RLS policies, revoked sessions and deleted the three inventoried test accounts. Database verification returned zero accounts, subscriptions, storage objects, properties, rooms and invoices, with zero temporary cleanup policies. No platform-admin role was granted. Local disposable QA credential/session files were removed. New users can sign up for a fresh 30-day trial; an administrator must still be explicitly designated by the project operator as described above.
+On 2026-09-20, the user explicitly requested deletion of all existing test data and approved a 10-minute, four-object Storage cleanup capability. Removed the four test objects through the Storage API, immediately dropped both temporary RLS policies, revoked sessions and deleted the three inventoried test accounts. Database verification returned zero accounts, subscriptions, storage objects, properties, rooms and invoices, with zero temporary cleanup policies. No platform-admin role was granted. Local disposable QA credential/session files were removed. At the time, new users could sign up for a fresh 30-day trial; an administrator must still be explicitly designated by the project operator as described above.
 The two remote maintenance migrations (temporary_scoped_test_storage_cleanup and revoke_temporary_test_storage_cleanup) are a completed one-off operation, not part of future application setup.

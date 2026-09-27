@@ -4,7 +4,7 @@ export const PLANS = {
   pro: { name: "Pro", price: 299, rooms: 200 },
 } as const;
 export type Plan = keyof typeof PLANS;
-export const TRIAL_DAYS = 30;
+export const TRIAL_DAYS = 60;
 export const TRIAL_ROOMS = 30;
 export function isPlan(value: unknown): value is Plan {
   return typeof value === "string" && Object.hasOwn(PLANS, value);

@@ -34,7 +34,7 @@ try {
     "supabase/hardening.sql",
     ...(await fs.readdir("supabase/migrations"))
       .sort()
-      .filter((n) => n.endsWith(".sql") && !n.includes("owner_subscriptions"))
+      .filter((n) => n.endsWith(".sql") && !n.includes("owner_subscriptions") && !n.includes("extend_trial_to_60_days"))
       .map((n) => "supabase/migrations/" + n),
   ]) {
     await db.exec(await fs.readFile(file, "utf8"));
@@ -53,6 +53,17 @@ try {
       "utf8",
     ),
   );
+  await db.exec(
+    await fs.readFile(
+      "supabase/migrations/20260927132440_extend_trial_to_60_days.sql",
+      "utf8",
+    ),
+  );
+  const legacyTrial = await db.query(
+    "select trial_ends_at - trial_started_at as duration from public.owner_subscriptions where owner_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'",
+  );
+  if (legacyTrial.rows[0]?.duration !== "60 days")
+    throw new Error("Existing trial was not extended to 60 days.");
   await db.exec(await fs.readFile("supabase/tests/mvp.sql", "utf8"));
   await db.exec(await fs.readFile("supabase/tests/group-bills.sql", "utf8"));
   await db.exec(await fs.readFile("supabase/tests/subscriptions.sql", "utf8"));

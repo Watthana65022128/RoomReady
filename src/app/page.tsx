@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "RoomReady · งานหอเบาลง เวลาชีวิตมากขึ้น",
   description:
-    "จัดการห้อง ผู้เช่า มิเตอร์ ออกบิลและติดตามยอดชำระในที่เดียว ทดลองฟรี 30 วัน แพ็กเกจเริ่มต้น 99 บาท/เดือน สำหรับ 1 หอพัก ไม่เกิน 200 ห้อง",
+    "จัดการห้อง ผู้เช่า มิเตอร์ ออกบิลและติดตามยอดชำระในที่เดียว ทดลองฟรี 60 วัน แพ็กเกจเริ่มต้น 99 บาท/เดือน สำหรับ 1 หอพัก ไม่เกิน 200 ห้อง",
   robots: { index: true, follow: true },
 };
 const features = [
@@ -38,17 +38,20 @@ export default async function Home({
   searchParams: Promise<{ property?: string; tab?: string; month?: string; step?: string; status?: string; q?: string }>;
 }) {
   const params = await searchParams;
-  // Keep previously shared workspace bookmarks useful.
-  if (params.property || params.tab || params.month || params.step || params.status || params.q) {
-    const query = new URLSearchParams();
-    for (const key of ["property", "tab", "month", "step", "status", "q"] as const)
-      if (params[key]) query.set(key, params[key]);
-    redirect("/dashboard?" + query.toString());
-  }
   const db = await createClient();
   const {
     data: { user },
   } = await db.auth.getUser();
+  if (user) {
+    // Keep previously shared workspace bookmarks useful.
+    if (params.property || params.tab || params.month || params.step || params.status || params.q) {
+      const query = new URLSearchParams();
+      for (const key of ["property", "tab", "month", "step", "status", "q"] as const)
+        if (params[key]) query.set(key, params[key]);
+      redirect("/dashboard?" + query.toString());
+    }
+    redirect("/dashboard");
+  }
   const start = user ? "/dashboard" : "/signup";
   return (
     <div className="landing">
@@ -97,7 +100,7 @@ export default async function Home({
             </p>
             <div className="landing-actions">
               <Link href={start} className="landing-button dark">
-                {user ? "ไปหน้าจัดการ" : "ทดลองฟรี 30 วัน"} <span>↗</span>
+                {user ? "ไปหน้าจัดการ" : "ทดลองฟรี 60 วัน"} <span>↗</span>
               </Link>
               <a className="landing-text-link" href="#features">
                 ดูว่าช่วยอะไรได้บ้าง ↓
@@ -274,7 +277,7 @@ export default async function Home({
                 <span>
                   สมัครสมาชิก
                   <br />
-                  <small>รับสิทธิ์ทดลอง 30 วัน</small>
+                  <small>รับสิทธิ์ทดลอง 60 วัน</small>
                 </span>
               </div>
               <div>
@@ -316,7 +319,7 @@ export default async function Home({
           </div>
           <div className="trial-ribbon">
             <span>
-              <strong>ลองให้เข้ากับงานของคุณก่อน</strong> ทดลองฟรี 30 วัน
+              <strong>ลองให้เข้ากับงานของคุณก่อน</strong> ทดลองฟรี 60 วัน
               ไม่เกิน 30 ห้อง
             </span>
             <Link href={start}>
@@ -382,14 +385,14 @@ export default async function Home({
             {[
               [
                 "ทดลองฟรีได้อะไรบ้าง?",
-                "ใช้ฟีเจอร์จัดการหอพักได้ 30 วันนับจากสมัคร สำหรับ 1 หอและไม่เกิน 30 ห้อง โดยไม่ต้องผูกบัตร",
+                "ใช้ฟีเจอร์จัดการหอพักได้ 60 วันนับจากสมัคร สำหรับ 1 หอและไม่เกิน 30 ห้อง โดยไม่ต้องผูกบัตร",
               ],
               [
                 "เจ้าของหนึ่งบัญชีมีหลายหอได้ไหม?",
                 "บัญชีเจ้าของหนึ่งบัญชีสร้างได้หนึ่งหอพัก เลือกแพ็กเกจตามจำนวนห้อง โดยแพ็กเกจสูงสุดรองรับ 200 ห้อง",
               ],
               [
-                "ครบ 30 วันแล้วข้อมูลจะหายไหม?",
+                "ครบ 60 วันแล้วข้อมูลจะหายไหม?",
                 "ข้อมูลยังอยู่และเปิดดูได้ แต่จะบันทึกการเปลี่ยนแปลงไม่ได้จนกว่าแอดมินจะยืนยันสิทธิ์แพ็กเกจ",
               ],
               [
@@ -420,7 +423,7 @@ export default async function Home({
               เป็นเดือนที่จัดการง่ายกว่าเดิม
             </h2>
             <Link href={start} className="landing-button light">
-              {user ? "ไปหน้าจัดการ" : "เริ่มทดลองฟรี 30 วัน"} ↗
+              {user ? "ไปหน้าจัดการ" : "เริ่มทดลองฟรี 60 วัน"} ↗
             </Link>
             <p>1 หอพัก · ทดลองสูงสุด 30 ห้อง · ไม่ต้องผูกบัตร</p>
           </div>

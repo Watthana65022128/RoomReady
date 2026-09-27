@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   PLANS,
+  TRIAL_DAYS,
   isPlan,
   subscriptionAccess,
   type Subscription,
@@ -10,10 +11,11 @@ const trial: Subscription = {
   owner_id: "test",
   plan: "trial",
   trial_started_at: "2026-09-20T00:00:00Z",
-  trial_ends_at: "2026-10-20T00:00:00Z",
+  trial_ends_at: "2026-11-19T00:00:00Z",
   expires_at: null,
 };
 test("agreed prices and room quotas", () => {
+  assert.equal(TRIAL_DAYS, 60);
   assert.deepEqual(
     Object.values(PLANS).map((p) => [p.price, p.rooms]),
     [
@@ -27,7 +29,7 @@ test("agreed prices and room quotas", () => {
 });
 test("trial boundary is exclusive and trial never follows paid expiry", () => {
   assert.equal(
-    subscriptionAccess(trial, Date.parse("2026-10-19T23:59:59Z")).active,
+    subscriptionAccess(trial, Date.parse("2026-11-18T23:59:59Z")).active,
     true,
   );
   assert.equal(
@@ -43,7 +45,7 @@ test("trial boundary is exclusive and trial never follows paid expiry", () => {
   );
   assert.equal(
     subscriptionAccess(trial, Date.parse(trial.trial_started_at)).daysLeft,
-    30,
+    60,
   );
   assert.equal(subscriptionAccess(trial).limit, 30);
 });

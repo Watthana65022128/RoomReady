@@ -42,7 +42,7 @@ export default async function SubscriptionPage({
         <div>
           <h2>
             {access.trial
-              ? "ทดลองฟรี 30 วัน"
+              ? "ทดลองฟรี 60 วัน"
               : PLANS[sub.plan as keyof typeof PLANS].name}
           </h2>
           <p>
