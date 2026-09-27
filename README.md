@@ -34,7 +34,7 @@ Webpack is selected because Turbopack's CSS worker fails to spawn on this Window
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `APP_URL`: set to the public HTTPS origin when deploying. Local form origin is used if omitted.
 
-In Supabase Auth URL Configuration, set the final Site URL and allow `<APP_URL>/auth/callback` and `<APP_URL>/auth/callback?next=/reset-password` (or a narrowly scoped callback wildcard). Include the exact local development origin when testing email links. Email confirmation is temporarily disabled in `supabase/config.toml` to simplify local signup testing. Re-enable **Confirm Email** (set `auth.email.enable_confirmations = true` locally and enable it for the hosted project) before public launch, then configure a production email sender and verify signup confirmation and password-reset delivery with a real inbox.
+In Supabase Auth URL Configuration, set the final Site URL and allow `<APP_URL>/auth/callback` and `<APP_URL>/auth/callback?next=/reset-password` (or a narrowly scoped callback wildcard). Include the exact local development origin when testing email links. Email confirmation remains disabled for the initial public launch. Password recovery is unavailable until a production email sender is configured; the signup and forgot-password pages disclose this limitation.
 
 Public bill reads and uploads run through the deployed **bill-gateway** Edge Function. It uses Supabase's injected `SUPABASE_SECRET_KEYS` server environment (with legacy service-role fallback). The Next.js server forwards the random bill token and upload; no admin key is put in Next.js client code or copied to the workstation.
 

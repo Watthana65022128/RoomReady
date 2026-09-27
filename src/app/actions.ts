@@ -88,6 +88,8 @@ export async function authAction(
   _state: ActionResult,
   form: FormData,
 ): Promise<ActionResult> {
+  if (mode === "forgot")
+    return { message: "ยังไม่เปิดบริการรีเซ็ตรหัสผ่านทางอีเมล" };
   const db = await createClient();
   const email = String(form.get("email") || "").trim(),
     password = String(form.get("password") || ""),
@@ -108,17 +110,6 @@ export async function authAction(
     process.env.APP_URL ||
     (await headers()).get("origin") ||
     "http://localhost:3000";
-  if (mode === "forgot") {
-    const { error } = await db.auth.resetPasswordForEmail(email, {
-      redirectTo: origin + "/auth/callback?next=/reset-password",
-    });
-    return error
-      ? { message: "ส่งอีเมลไม่สำเร็จ กรุณาลองอีกครั้ง" }
-      : {
-          ok: true,
-          message: "หากมีบัญชีนี้ ระบบจะส่งลิงก์ตั้งรหัสผ่านไปทางอีเมล",
-        };
-  }
   if (mode === "reset") {
     const {
       data: { user },

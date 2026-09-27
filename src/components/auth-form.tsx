@@ -75,7 +75,19 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
               ? "ทดลองฟรี 60 วัน · 1 หอพัก · ไม่เกิน 30 ห้อง · ไม่ต้องผูกบัตร"
               : "จัดการหอพักของคุณได้จากทุกอุปกรณ์"}
           </p>
-          <form action={action} className="stack">
+          {signup && (
+            <p className="notice" role="note">
+              ขณะนี้ยังไม่รองรับการรีเซ็ตรหัสผ่านทางอีเมล กรุณาเก็บรหัสผ่านไว้ให้ปลอดภัย
+            </p>
+          )}
+          {mode === "forgot" && (
+            <p className="notice" role="status">
+              ขณะนี้ยังไม่เปิดบริการรีเซ็ตรหัสผ่านทางอีเมล หากจำรหัสผ่านไม่ได้
+              จะยังไม่สามารถกู้บัญชีด้วยตนเองได้
+            </p>
+          )}
+          {mode !== "forgot" && (
+            <form action={action} className="stack">
             {mode !== "reset" && (
               <label>
                 อีเมล
@@ -161,7 +173,8 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
                       ? "ส่งลิงก์ตั้งรหัสผ่าน"
                       : "บันทึกรหัสผ่าน"}
             </button>
-          </form>
+            </form>
+          )}
           <div className="auth-links">
             {mode === "login" ? (
               <>
