@@ -29,13 +29,16 @@ try {
  create function storage.foldername(text) returns text[] language sql as $$ select (string_to_array($1,'/'))[1:array_length(string_to_array($1,'/'),1)-1] $$;
  create function storage.filename(text) returns text language sql as $$ select (string_to_array($1,'/'))[array_length(string_to_array($1,'/'),1)] $$;
  `);
+  const subscriptionsMigration = "20260920143225_owner_subscriptions.sql";
+  const migrations = (await fs.readdir("supabase/migrations"))
+    .filter((name) => name.endsWith(".sql"))
+    .sort();
   for (const file of [
     "supabase/schema.sql",
     "supabase/hardening.sql",
-    ...(await fs.readdir("supabase/migrations"))
-      .sort()
-      .filter((n) => n.endsWith(".sql") && !n.includes("owner_subscriptions") && !n.includes("extend_trial_to_60_days"))
-      .map((n) => "supabase/migrations/" + n),
+    ...migrations
+      .filter((name) => name < subscriptionsMigration)
+      .map((name) => "supabase/migrations/" + name),
   ]) {
     await db.exec(await fs.readFile(file, "utf8"));
   }
@@ -49,16 +52,13 @@ try {
  `);
   await db.exec(
     await fs.readFile(
-      "supabase/migrations/20260920143225_owner_subscriptions.sql",
+      "supabase/migrations/" + subscriptionsMigration,
       "utf8",
     ),
   );
-  await db.exec(
-    await fs.readFile(
-      "supabase/migrations/20260927132440_extend_trial_to_60_days.sql",
-      "utf8",
-    ),
-  );
+  for (const name of migrations.filter((name) => name > subscriptionsMigration)) {
+    await db.exec(await fs.readFile("supabase/migrations/" + name, "utf8"));
+  }
   const legacyTrial = await db.query(
     "select trial_ends_at - trial_started_at as duration from public.owner_subscriptions where owner_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'",
   );

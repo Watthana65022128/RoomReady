@@ -19,9 +19,9 @@ test("agreed prices and room quotas", () => {
   assert.deepEqual(
     Object.values(PLANS).map((p) => [p.price, p.rooms]),
     [
-      [99, 30],
-      [199, 100],
-      [299, 200],
+      [199, 50],
+      [299, 100],
+      [399, 200],
     ],
   );
   for (const bad of ["trial", "constructor", "__proto__", "toString", null, 99])
@@ -57,7 +57,7 @@ test("paid expiry overrides remaining trial; downgrade keeps lower capacity", ()
   };
   assert.equal(subscriptionAccess(sub, Date.parse("2026-09-22")).active, false);
   assert.equal(subscriptionAccess(sub).limit, 100);
-  assert.equal(subscriptionAccess({ ...sub, plan: "starter" }).limit, 30);
+  assert.equal(subscriptionAccess({ ...sub, plan: "starter" }).limit, 50);
   assert.equal(subscriptionAccess({ ...sub, plan: "pro" }).limit, 200);
   assert.equal(subscriptionAccess({ ...sub, expires_at: null }).active, false);
 });

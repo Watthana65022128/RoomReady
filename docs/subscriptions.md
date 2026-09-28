@@ -4,7 +4,7 @@ Implemented 2026-09-20. Landing page at /, workspace at /dashboard, owner plan r
 
 ## Entitlements
 - One owner account can create one property. Trial begins at signup: 60 days, 30 rooms.
-- Starter: 99 THB/month, 30 rooms. Standard: 199 THB/month, 100 rooms. Pro: 299 THB/month, 200 rooms. Every plan includes the same features.
+- Starter: 199 THB/month, 50 rooms. Standard: 299 THB/month, 100 rooms. Pro: 399 THB/month, 200 rooms. Every plan includes the same features.
 - Rooms count regardless of occupancy. Counters are updated atomically by PostgreSQL triggers, including batch inserts/deletes; failed transactions roll back both data and counters.
 - Existing excess data is preserved by migrations and downgrades, but cannot be expanded above the current account quota.
 - Expired owners can read existing records and request renewal. Server checks, database triggers, and restrictive Storage policies deny owner writes. Public tenant submission of existing valid bills remains available.
@@ -35,7 +35,7 @@ npm install --prefix .tmp/db-tools --no-audit --no-fund @electric-sql/pglite
 node scripts/test-subscriptions.mjs
 ```
 
-The isolated PostgreSQL suite loads the actual schema, hardening and migrations, then exercises existing 200-room billing, group sharing, legacy preservation, trial boundaries, 30/100/200 limits, bulk rollback, read isolation, denied direct entitlement writes, malicious user metadata, admin directory/approval denial, valid approvals/renewals, single-use approval, downgrade, expiry, and QR access.
+The isolated PostgreSQL suite loads the actual schema, hardening and migrations, then exercises existing 200-room billing, group sharing, legacy preservation, trial boundaries, the 30-room trial and 50/100/200 paid limits, bulk rollback, read isolation, denied direct entitlement writes, malicious user metadata, admin directory/approval denial, valid approvals/renewals, single-use approval, downgrade, expiry, and QR access.
 
 Browser/API QA covered landing at desktop/390px/320px, FAQ, signup and login redirects, owner plan requests, admin denial, and two simultaneous inserts with only one room remaining. Privileged admin actions are tested in isolated PostgreSQL; live promotion and paid-plan approval of the QA account were not authorized by automatic review and were not executed.
 
@@ -43,6 +43,7 @@ Browser/API QA covered landing at desktop/390px/320px, FAQ, signup and login red
 Supabase advisors reported no new RLS or function issues. The existing project-level [leaked-password protection setting](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) remains disabled; this change did not modify Auth configuration.
 
 ## Deployment and rollback
+The 2026-09-28 pricing update sets Starter/Standard/Pro to 199/299/399 THB per month. `20260928073914_increase_starter_room_limit_to_50.sql` has been applied to the configured Supabase project: Starter now allows 50 rooms, Standard and Pro remain at 100 and 200, and trial stays at 60 days / 30 rooms. Existing subscriptions, properties and rooms are preserved. The isolated suite verifies the 50th room succeeds, the 51st fails, and an over-quota batch rolls back both rooms and counters.
 The 60-day trial change is in `20260927132440_extend_trial_to_60_days.sql` and has been applied to the configured Supabase project. It extended the two existing accounts still on the original 30-day trial, changed the default, and updated the signup trigger. Verify frontend copy before releasing it.
 The original subscription migration was applied to the configured Supabase project. The frontend is deployed at https://roomready-navy.vercel.app. Public homepage is indexable; authenticated and bill pages retain noindex from the root layout.
 Rollback the frontend and quota feature together. Keep subscription/request/event records for audit; do not delete them to roll back. Restore prior mutation guards/policies using a reviewed forward migration if reverting entitlements. Removing enforcement while keeping new pricing visible would misrepresent the product.

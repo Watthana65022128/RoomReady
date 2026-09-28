@@ -35,6 +35,7 @@ do $$ declare pid uuid; rid uuid; r uuid; rec public.owner_subscriptions; begin
  r:=public.request_subscription('starter');
  assert public.request_subscription('starter')=r,'duplicate request not idempotent';
  perform public.request_subscription('standard');
+ perform public.request_subscription('starter');
  assert (select count(*) from public.subscription_requests where status='pending')=1,'multiple pending';
  assert (select plan from public.owner_subscriptions)='trial','request granted privileges';
 end $$;
@@ -48,16 +49,31 @@ do $$ declare rid uuid; expiry timestamptz; begin
  assert public.is_subscription_admin(),'admin role rejected';
  assert jsonb_array_length(public.subscription_admin('owner@example.invalid',0))=1,'admin search';
  select id into rid from public.subscription_requests where status='pending';
- perform public.approve_subscription(rid,'standard');
+ perform public.approve_subscription(rid,'starter');
  select expires_at into expiry from public.owner_subscriptions where owner_id='11111111-1111-4111-8111-111111111111';
  assert expiry=now()+interval '1 month','first approval expiry';
- begin perform public.approve_subscription(rid,'standard'); raise exception 'FAIL duplicate approval'; exception when raise_exception then if sqlerrm='FAIL duplicate approval' then raise; end if; end;
+ begin perform public.approve_subscription(rid,'starter'); raise exception 'FAIL duplicate approval'; exception when raise_exception then if sqlerrm='FAIL duplicate approval' then raise; end if; end;
  assert (select count(*) from public.subscription_events)=1,'audit missing/duplicate';
 end $$;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
 do $$ declare pid uuid; begin
  select id into pid from public.properties;
- perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names',(select jsonb_agg(n::text) from generate_series(31,100)n)));
+ assert (select plan from public.owner_subscriptions)='starter','starter approval missing';
+ perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names',(select jsonb_agg(n::text) from generate_series(31,49)n)));
+ begin perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names','["50","51"]'::jsonb)); raise exception 'FAIL starter bulk cap'; exception when raise_exception then if sqlerrm='FAIL starter bulk cap' then raise; end if; end;
+ assert (select room_count from public.owner_subscriptions)=49,'starter bulk rollback leaked counter';
+ assert (select count(*) from public.rooms)=49,'starter bulk rollback leaked rows';
+ perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names','["50"]'::jsonb));
+ assert (select room_count from public.owner_subscriptions)=50,'starter 50th room rejected';
+ begin perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names','["51"]'::jsonb)); raise exception 'FAIL starter cap'; exception when raise_exception then if sqlerrm='FAIL starter cap' then raise; end if; end;
+ perform public.request_subscription('standard');
+end $$;
+select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
+select public.approve_subscription((select id from public.subscription_requests where status='pending'),'standard');
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+do $$ declare pid uuid; begin
+ select id into pid from public.properties;
+ perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names',(select jsonb_agg(n::text) from generate_series(51,100)n)));
  begin perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names','["101"]'::jsonb)); raise exception 'FAIL standard cap'; exception when raise_exception then if sqlerrm='FAIL standard cap' then raise; end if; end;
  perform public.request_subscription('standard');
 end $$;

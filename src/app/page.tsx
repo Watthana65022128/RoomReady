@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "RoomReady · งานหอเบาลง เวลาชีวิตมากขึ้น",
   description:
-    "จัดการห้อง ผู้เช่า มิเตอร์ ออกบิลและติดตามยอดชำระในที่เดียว ทดลองฟรี 60 วัน แพ็กเกจเริ่มต้น 99 บาท/เดือน สำหรับ 1 หอพัก ไม่เกิน 200 ห้อง",
+    `จัดการห้อง ผู้เช่า มิเตอร์ ออกบิลและติดตามยอดชำระในที่เดียว ทดลองฟรี 60 วัน แพ็กเกจเริ่มต้น ${PLANS.starter.price} บาท/เดือน สำหรับ 1 หอพัก ไม่เกิน 200 ห้อง`,
   robots: { index: true, follow: true },
 };
 const features = [
@@ -107,7 +107,7 @@ export default async function Home({
               </a>
             </div>
             <p className="hero-fineprint">
-              ไม่ต้องผูกบัตร · ทดลองได้ 30 ห้อง · เริ่มต้นเพียง 99 บาท/เดือน
+              ไม่ต้องผูกบัตร · ทดลองได้ 30 ห้อง · เริ่มต้นเพียง {PLANS.starter.price} บาท/เดือน
             </p>
             <div className="hero-note">
               <span className="note-line" />

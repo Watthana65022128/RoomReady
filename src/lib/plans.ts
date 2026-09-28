@@ -1,7 +1,7 @@
 export const PLANS = {
-  starter: { name: "Starter", price: 99, rooms: 30 },
-  standard: { name: "Standard", price: 199, rooms: 100 },
-  pro: { name: "Pro", price: 299, rooms: 200 },
+  starter: { name: "Starter", price: 199, rooms: 50 },
+  standard: { name: "Standard", price: 299, rooms: 100 },
+  pro: { name: "Pro", price: 399, rooms: 200 },
 } as const;
 export type Plan = keyof typeof PLANS;
 export const TRIAL_DAYS = 60;
