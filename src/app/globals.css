@@ -548,24 +548,29 @@ fieldset:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 10px 14px;
-  border: 1px solid #e8ceca;
-  border-radius: 8px;
-  background: #fcf3f1;
-  color: var(--red);
-  font-size: 14px;
+  gap: 6px;
+  width: fit-content;
+  min-height: 32px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #697b70;
+  font-size: 13px;
+  line-height: 20px;
   font-weight: 500;
   white-space: nowrap;
 }
+.side-bottom .logout-button {
+  align-self: flex-start;
+}
 .logout-button:hover {
-  background: #f7e4e0;
-  border-color: #d8aaa2;
+  background: var(--canvas);
+  color: var(--ink);
 }
 .logout-button:focus-visible {
-  outline: 2px solid var(--red);
-  outline-offset: 3px;
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
 }
 .logout-button svg {
   flex-shrink: 0;
@@ -1935,6 +1940,7 @@ th,
   }
   .mobile-account .logout-button {
     flex-shrink: 0;
+    min-height: 44px;
   }
   .topbar .date-today {
     display: none;
