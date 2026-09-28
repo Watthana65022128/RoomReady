@@ -47,7 +47,7 @@ test("trial boundary is exclusive and trial never follows paid expiry", () => {
     subscriptionAccess(trial, Date.parse(trial.trial_started_at)).daysLeft,
     60,
   );
-  assert.equal(subscriptionAccess(trial).limit, 30);
+  assert.equal(subscriptionAccess(trial).limit, 50);
 });
 test("paid expiry overrides remaining trial; downgrade keeps lower capacity", () => {
   const sub = {

@@ -24,14 +24,16 @@ do $$ declare pid uuid; rid uuid; r uuid; rec public.owner_subscriptions; begin
    perform public.owner_command('property_save','{"name":"Second","rent":1000,"water_method":"meter","water_rate":10,"electric_rate":5,"due_day":5,"charges":[]}');
    raise exception 'FAIL second property';
  exception when raise_exception then if sqlerrm='FAIL second property' then raise; end if; end;
- perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names',(select jsonb_agg(n::text) from generate_series(1,29)n)));
+ perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names',(select jsonb_agg(n::text) from generate_series(1,49)n)));
  begin
-   perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names','["30","31"]'::jsonb));
+   perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names','["50","51"]'::jsonb));
    raise exception 'FAIL bulk over quota';
  exception when raise_exception then if sqlerrm='FAIL bulk over quota' then raise; end if; end;
- assert (select room_count from public.owner_subscriptions)=29,'bulk rollback leaked counter';
- assert (select count(*) from public.rooms)=29,'bulk rollback leaked rows';
- perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names','["30"]'::jsonb));
+ assert (select room_count from public.owner_subscriptions)=49,'bulk rollback leaked counter';
+ assert (select count(*) from public.rooms)=49,'bulk rollback leaked rows';
+ perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names','["50"]'::jsonb));
+ assert (select room_count from public.owner_subscriptions)=50,'trial 50th room rejected';
+ begin perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names','["51"]'::jsonb)); raise exception 'FAIL trial cap'; exception when raise_exception then if sqlerrm='FAIL trial cap' then raise; end if; end;
  r:=public.request_subscription('starter');
  assert public.request_subscription('starter')=r,'duplicate request not idempotent';
  perform public.request_subscription('standard');
@@ -39,6 +41,10 @@ do $$ declare pid uuid; rid uuid; r uuid; rec public.owner_subscriptions; begin
  assert (select count(*) from public.subscription_requests where status='pending')=1,'multiple pending';
  assert (select plan from public.owner_subscriptions)='trial','request granted privileges';
 end $$;
+-- Free one fixture slot so the paid Starter boundary is exercised independently.
+reset role;
+delete from public.rooms where owner_id='11111111-1111-4111-8111-111111111111' and name='50';
+set role authenticated;
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
 do $$ begin
  assert (select count(*) from public.rooms)=0,'room ownership leak';
@@ -59,7 +65,6 @@ select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111'
 do $$ declare pid uuid; begin
  select id into pid from public.properties;
  assert (select plan from public.owner_subscriptions)='starter','starter approval missing';
- perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names',(select jsonb_agg(n::text) from generate_series(31,49)n)));
  begin perform public.owner_command('rooms_add',jsonb_build_object('property_id',pid,'names','["50","51"]'::jsonb)); raise exception 'FAIL starter bulk cap'; exception when raise_exception then if sqlerrm='FAIL starter bulk cap' then raise; end if; end;
  assert (select room_count from public.owner_subscriptions)=49,'starter bulk rollback leaked counter';
  assert (select count(*) from public.rooms)=49,'starter bulk rollback leaked rows';

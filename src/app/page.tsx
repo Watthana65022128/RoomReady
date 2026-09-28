@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { PLANS } from "@/lib/plans";
+import { PLANS, TRIAL_ROOMS } from "@/lib/plans";
 import "./landing.css";
 import { BrandLogo } from "@/components/brand-logo";
 export const dynamic = "force-dynamic";
@@ -107,7 +107,7 @@ export default async function Home({
               </a>
             </div>
             <p className="hero-fineprint">
-              ไม่ต้องผูกบัตร · ทดลองได้ 30 ห้อง · เริ่มต้นเพียง {PLANS.starter.price} บาท/เดือน
+              ไม่ต้องผูกบัตร · ทดลองได้ {TRIAL_ROOMS} ห้อง · เริ่มต้นเพียง {PLANS.starter.price} บาท/เดือน
             </p>
             <div className="hero-note">
               <span className="note-line" />
@@ -320,7 +320,7 @@ export default async function Home({
           <div className="trial-ribbon">
             <span>
               <strong>ลองให้เข้ากับงานของคุณก่อน</strong> ทดลองฟรี 60 วัน
-              ไม่เกิน 30 ห้อง
+              ไม่เกิน {TRIAL_ROOMS} ห้อง
             </span>
             <Link href={start}>
               {user ? "ไปหน้าจัดการ" : "เริ่มทดลองฟรี"} ↗
@@ -365,7 +365,7 @@ export default async function Home({
             ))}
           </div>
           <p className="pricing-note">
-            ช่วงทดลองใช้ได้สูงสุด 30 ห้อง
+            ช่วงทดลองใช้ได้สูงสุด {TRIAL_ROOMS} ห้อง
             หลังทดลองเลือกแพ็กเกจและให้แอดมินยืนยันหลังรับชำระเงิน
           </p>
         </section>
@@ -385,7 +385,7 @@ export default async function Home({
             {[
               [
                 "ทดลองฟรีได้อะไรบ้าง?",
-                "ใช้ฟีเจอร์จัดการหอพักได้ 60 วันนับจากสมัคร สำหรับ 1 หอและไม่เกิน 30 ห้อง โดยไม่ต้องผูกบัตร",
+                `ใช้ฟีเจอร์จัดการหอพักได้ 60 วันนับจากสมัคร สำหรับ 1 หอและไม่เกิน ${TRIAL_ROOMS} ห้อง โดยไม่ต้องผูกบัตร`,
               ],
               [
                 "เจ้าของหนึ่งบัญชีมีหลายหอได้ไหม?",
@@ -425,7 +425,7 @@ export default async function Home({
             <Link href={start} className="landing-button light">
               {user ? "ไปหน้าจัดการ" : "เริ่มทดลองฟรี 60 วัน"} ↗
             </Link>
-            <p>1 หอพัก · ทดลองสูงสุด 30 ห้อง · ไม่ต้องผูกบัตร</p>
+            <p>1 หอพัก · ทดลองสูงสุด {TRIAL_ROOMS} ห้อง · ไม่ต้องผูกบัตร</p>
           </div>
         </section>
       </main>

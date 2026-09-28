@@ -1,6 +1,6 @@
 # RoomReady — Dormitory Micro SaaS
 
-Thai landing page and owner workspace for one dormitory per account, with monthly billing for up to 200 rooms. Trial: 60 days / 30 rooms. Starter: ฿199 / 50 rooms; Standard: ฿299 / 100 rooms; Pro: ฿399 / 200 rooms.
+Thai landing page and owner workspace for one dormitory per account, with monthly billing for up to 200 rooms. Trial: 60 days / 50 rooms (Starter capacity). Starter: ฿199 / 50 rooms; Standard: ฿299 / 100 rooms; Pro: ฿399 / 200 rooms.
 
 ## Run
 

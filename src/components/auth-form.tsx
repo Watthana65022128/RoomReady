@@ -7,6 +7,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { authAction } from "@/app/actions";
+import { TRIAL_ROOMS } from "@/lib/plans";
 import { useToast } from "./toast";
 import { BrandLogo } from "./brand-logo";
 import {
@@ -72,7 +73,7 @@ export function AuthForm({ mode, error }: { mode: string; error?: string }) {
           <h2>{title}</h2>
           <p className="muted">
             {signup
-              ? "ทดลองฟรี 60 วัน · 1 หอพัก · ไม่เกิน 30 ห้อง · ไม่ต้องผูกบัตร"
+              ? `ทดลองฟรี 60 วัน · 1 หอพัก · ไม่เกิน ${TRIAL_ROOMS} ห้อง · ไม่ต้องผูกบัตร`
               : "จัดการหอพักของคุณได้จากทุกอุปกรณ์"}
           </p>
           {signup && (
