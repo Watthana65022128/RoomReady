@@ -1,5 +1,6 @@
 import "server-only";
 import { owner } from "@/lib/data";
+import { readWithJwtRetry } from "@/lib/supabase/read-retry";
 import { subscriptionAccess } from "@/lib/plans";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
@@ -7,12 +8,22 @@ export async function readSubscription(
   db: SupabaseClient<Database>,
   ownerId: string,
 ) {
-  const { data, error } = await db
-    .from("owner_subscriptions")
-    .select("*")
-    .eq("owner_id", ownerId)
-    .single();
-  if (error || !data) throw new Error("โหลดแพ็กเกจไม่สำเร็จ กรุณาลองอีกครั้ง");
+  const { data, error, status } = await readWithJwtRetry(
+    () =>
+      db
+        .from("owner_subscriptions")
+        .select("*")
+        .eq("owner_id", ownerId)
+        .single(),
+    "subscription.owner_subscriptions",
+  );
+  if (error || !data) {
+    console.error("[subscription.read] Failed to load subscription", {
+      status,
+      code: error?.code,
+    });
+    throw new Error("โหลดแพ็กเกจไม่สำเร็จ กรุณาลองอีกครั้ง");
+  }
   return data;
 }
 export async function requireActiveSubscription(

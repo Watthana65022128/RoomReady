@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { readWithJwtRetry } from "@/lib/supabase/read-retry";
 import { redirect } from "next/navigation";
 import type { Tables } from "@/types/database";
 import type { Workspace } from "@/lib/domain";
@@ -34,12 +35,16 @@ export async function workspace(): Promise<Workspace> {
     const result: Tables<T>[] = [];
     for (let offset = 0; ; offset += 1000) {
       const startedAt = Date.now();
-      const { data, error, status } = await db
-        .from(table as OwnerTable)
-        .select("*")
-        .eq("owner_id", user.id)
-        .order("id")
-        .range(offset, offset + 999);
+      const { data, error, status } = await readWithJwtRetry(
+        () =>
+          db
+            .from(table as OwnerTable)
+            .select("*")
+            .eq("owner_id", user.id)
+            .order("id")
+            .range(offset, offset + 999),
+        `workspace.${table}`,
+      );
       if (error) {
         console.error("[workspace.rows] Failed to load data", {
           table,
