@@ -18,6 +18,7 @@ export default async function Dashboard({
       <WorkspaceApp
         data={data}
         subscription={context.subscription}
+        ownerEmail={context.user.email ?? ""}
         initial={initial}
       />
     </OwnerAccess>

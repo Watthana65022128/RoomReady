@@ -515,8 +515,8 @@ fieldset:disabled {
 }
 .side-bottom {
   display: flex;
-  gap: 9px;
-  align-items: center;
+  flex-direction: column;
+  gap: 14px;
   margin-top: auto;
   border-top: 1px solid var(--line);
   padding-top: 18px;
@@ -527,10 +527,51 @@ fieldset:disabled {
   font-size: 11px;
   color: var(--muted);
 }
-.side-bottom form {
-  margin-left: auto;
+.owner-profile {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.owner-identity {
+  flex: 1;
+  min-width: 0;
+}
+.owner-email {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.logout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #e8ceca;
+  border-radius: 8px;
+  background: #fcf3f1;
+  color: var(--red);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.logout-button:hover {
+  background: #f7e4e0;
+  border-color: #d8aaa2;
+}
+.logout-button:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+}
+.logout-button svg {
+  flex-shrink: 0;
 }
 .owner-avatar {
+  flex-shrink: 0;
   border: 1px solid #d8e4cc;
   background: #f1f5e9;
   width: 34px;
@@ -1591,6 +1632,9 @@ progress {
     height: auto;
     min-height: 65px;
     padding: 12px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
   }
   .topbar-right {
     gap: 8px;
@@ -1858,7 +1902,7 @@ progress {
     transition: none !important;
   }
 }
-.mobile-logout {
+.mobile-account {
   display: none;
 }
 .stat > span,
@@ -1878,8 +1922,22 @@ th,
   font-size: 14px;
 }
 @media (max-width: 700px) {
-  .mobile-logout {
-    display: block;
+  .mobile-account {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+  }
+  .mobile-account .owner-profile {
+    flex: 1;
+  }
+  .mobile-account .logout-button {
+    flex-shrink: 0;
+  }
+  .topbar .date-today {
+    display: none;
   }
   .meter-table {
     min-width: 0;

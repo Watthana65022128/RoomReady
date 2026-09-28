@@ -33,18 +33,32 @@ import { dashboardHref, withReturnTo, type DashboardLocation } from "@/lib/navig
 import { groupRoomsByFloor } from "@/lib/room-floors";
 
 type Tab = DashboardLocation["tab"];
+function LogoutButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" className="logout-button" onClick={onClick}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M9 5H5v14h4M12 12h9m-4-4 4 4-4 4" />
+      </svg>
+      ออกจากระบบ
+    </button>
+  );
+}
 export function WorkspaceApp({
   data,
   initial,
   subscription,
+  ownerEmail,
 }: {
   data: Workspace;
   subscription: Subscription;
+  ownerEmail: string;
   initial: { tab?: string; month?: string; step?: string; status?: string; q?: string };
 }) {
   const router = useRouter();
   const notify = useToast();
   const canWrite = useOwnerAccess();
+  const ownerLabel = ownerEmail || "บัญชีผู้ใช้";
+  const ownerInitial = Array.from(ownerLabel)[0].toUpperCase();
   const access = { ...subscriptionAccess(subscription), active: canWrite };
   const roomSlots = Math.max(0, access.limit - data.rooms.length);
   const [tab, setTab] = useState<Tab>(
@@ -247,18 +261,14 @@ export function WorkspaceApp({
           แพ็กเกจและสิทธิ์ใช้งาน ↗
         </Link>
         <div className="side-bottom">
-          <div className="owner-avatar">จ</div>
-          <div>
-            เจ้าของหอพัก<small>{data.properties.length} หอพักในบัญชี</small>
+          <div className="owner-profile">
+            <div className="owner-avatar" aria-hidden="true">{ownerInitial}</div>
+            <div className="owner-identity">
+              <span className="owner-email" title={ownerLabel}>{ownerLabel}</span>
+              <small>{data.properties.length} หอพักในบัญชี</small>
+            </div>
           </div>
-          <button
-            type="button"
-            title="ออกจากระบบ"
-            aria-label="ออกจากระบบ"
-            onClick={() => setModal("logout")}
-          >
-            ↪
-          </button>
+          <LogoutButton onClick={() => setModal("logout")} />
         </div>
       </aside>
       <div className="app-body">
@@ -268,15 +278,14 @@ export function WorkspaceApp({
           </span>
           <div className="topbar-right">
             <span className="date-today">{dateLabel(today())}</span>
-            <div className="mobile-logout">
-              <button
-                type="button"
-                className="small secondary"
-                aria-label="ออกจากระบบ"
-                onClick={() => setModal("logout")}
-              >
-                ↪
-              </button>
+            <div className="mobile-account">
+              <div className="owner-profile">
+                <div className="owner-avatar" aria-hidden="true">{ownerInitial}</div>
+                <div className="owner-identity">
+                  <span className="owner-email" title={ownerLabel}>{ownerLabel}</span>
+                </div>
+              </div>
+              <LogoutButton onClick={() => setModal("logout")} />
             </div>
           </div>
         </header>
