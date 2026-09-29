@@ -36,13 +36,14 @@ export async function workspace(): Promise<Workspace> {
     for (let offset = 0; ; offset += 1000) {
       const startedAt = Date.now();
       const { data, error, status } = await readWithJwtRetry(
-        () =>
+        (signal) =>
           db
             .from(table as OwnerTable)
             .select("*")
             .eq("owner_id", user.id)
             .order("id")
-            .range(offset, offset + 999),
+            .range(offset, offset + 999)
+            .abortSignal(signal),
         `workspace.${table}`,
       );
       if (error) {

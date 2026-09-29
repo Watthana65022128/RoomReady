@@ -82,11 +82,15 @@ test("Supabase queries are rebuilt on retry and preserve owner filters", async (
   t.mock.method(console, "warn", () => {});
   for (const single of [false, true]) {
     const requests: URL[] = [];
+    const signals: AbortSignal[] = [];
     const db = createClient("https://example.supabase.co", "test-key", {
       auth: { persistSession: false, autoRefreshToken: false },
       global: {
-        fetch: async (input) => {
+        fetch: async (input, init) => {
           requests.push(new URL(String(input)));
+          assert.ok(init?.signal instanceof AbortSignal);
+          assert.equal(init.signal.aborted, false);
+          signals.push(init.signal);
           return new Response(
             JSON.stringify(requests.length === 1 ? futureJwt.error : single ? { owner_id: "owner" } : success.data),
             { status: requests.length === 1 ? 401 : 200, headers: { "Content-Type": "application/json" } },
@@ -95,9 +99,9 @@ test("Supabase queries are rebuilt on retry and preserve owner filters", async (
       },
     });
     const result = await readWithJwtRetry(
-      () => {
+      (signal) => {
         const query = db.from(single ? "owner_subscriptions" : "meter_readings")
-          .select("*").eq("owner_id", "owner");
+          .select("*").eq("owner_id", "owner").abortSignal(signal);
         return single ? query.single() : query.order("id").range(0, 999);
       },
       "test.sdk",
@@ -106,6 +110,7 @@ test("Supabase queries are rebuilt on retry and preserve owner filters", async (
     assert.equal(result.error, null);
     assert.deepEqual(result.data, single ? { owner_id: "owner" } : success.data);
     assert.equal(requests.length, 2);
+    assert.notEqual(signals[0], signals[1], "retries must make a fresh request outside Next.js memoization");
     assert.equal(requests[0].href, requests[1].href);
     assert.equal(requests[1].searchParams.get("owner_id"), "eq.owner");
   }

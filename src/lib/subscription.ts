@@ -9,11 +9,12 @@ export async function readSubscription(
   ownerId: string,
 ) {
   const { data, error, status } = await readWithJwtRetry(
-    () =>
+    (signal) =>
       db
         .from("owner_subscriptions")
         .select("*")
         .eq("owner_id", ownerId)
+        .abortSignal(signal)
         .single(),
     "subscription.owner_subscriptions",
   );

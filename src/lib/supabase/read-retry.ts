@@ -7,14 +7,16 @@ const RETRY_DELAYS_MS = [500, 1000, 2000];
 
 // Auth and PostgREST can briefly disagree about the issuance time of a new JWT.
 // Retry reads with the same session; expired/invalid tokens still fail normally.
+// Each query must forward its signal to opt out of Next.js GET memoization,
+// otherwise every retry can receive the first failed response without an API call.
 export async function readWithJwtRetry<T extends ReadResult>(
-  read: () => PromiseLike<T>,
+  read: (signal: AbortSignal) => PromiseLike<T>,
   operation: string,
   wait: (ms: number) => Promise<void> = (ms) =>
     new Promise((resolve) => setTimeout(resolve, ms)),
 ): Promise<T> {
   for (let attempt = 0; ; attempt++) {
-    const result = await read();
+    const result = await read(new AbortController().signal);
     const delayMs = RETRY_DELAYS_MS[attempt];
     if (
       delayMs === undefined ||
